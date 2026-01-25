@@ -25,19 +25,30 @@ export default function Hero() {
 
             {/* TITLE - DeepDreams with elegant gold styling */}
             <div className="text-center mb-3 px-4 py-4 relative">
+                <div className="absolute inset-0 bg-gold/5 blur-3xl opacity-20 rounded-full" />
+
                 <motion.h1
                     className="text-5xl md:text-6xl lg:text-8xl font-bold relative z-10"
                     style={{
                         fontFamily: 'var(--font-italiana), serif',
-                        color: '#E8D5A3', // Premium Gold Color
-                        textShadow: '0 2px 10px rgba(196, 160, 82, 0.3)', // Subtle glow
+                        background: 'linear-gradient(to right, #bf953f, #e8d5a3, #b38728, #e8d5a3, #bf953f)',
+                        backgroundSize: '200% auto',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                        color: 'transparent',
                         letterSpacing: '0.02em',
                         lineHeight: '1.4',
                         paddingBottom: '0.2em',
                     }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    animate={{
+                        backgroundPosition: ['0% center', '200% center'],
+                    }}
+                    transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "linear"
+                    }}
                 >
                     DeepDreams
                 </motion.h1>

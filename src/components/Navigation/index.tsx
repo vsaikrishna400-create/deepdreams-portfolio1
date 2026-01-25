@@ -54,9 +54,10 @@ export default function Navigation() {
                     <motion.span
                         className="font-bold text-lg hidden sm:block"
                         style={{
-                            background: 'linear-gradient(135deg, #c4a052 0%, #d4b87a 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
+                            color: '#e8d5a3', // Solid Gold
+                            textShadow: '0 0 10px rgba(196, 160, 82, 0.3)',
+                            fontFamily: 'var(--font-italiana), serif', // Match Hero font
+                            letterSpacing: '0.05em'
                         }}
                     >
                         DeepDreams
