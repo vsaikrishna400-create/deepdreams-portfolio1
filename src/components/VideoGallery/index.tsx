@@ -5,32 +5,32 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 
 const videos = [
     {
-        src: '/videos/shiva.mp4',
+        src: '/videos/shiva.mp4?v=1',
         title: 'Try Beauty - Blessing Scene',
         category: 'Try Beauty'
     },
     {
-        src: '/videos/ajay.mp4',
+        src: '/videos/ajay.mp4?v=1',
         title: 'Mother\'s Blessing Video',
         category: 'Try Beauty'
     },
     {
-        src: '/videos/celebration.mp4',
+        src: '/videos/celebration.mp4?v=1',
         title: 'Celebration Moment',
         category: 'Try Beauty'
     },
     {
-        src: '/videos/temple.mp4',
+        src: '/videos/temple.mp4?v=1',
         title: 'Temple Experience',
         category: 'Ad Campaign'
     },
     {
-        src: '/videos/brand-story-1.mp4',
+        src: '/videos/brand-story-1.mp4?v=1',
         title: 'Brand Story - Part 1',
         category: 'Ad Campaign'
     },
     {
-        src: '/videos/brand-story-2.mp4',
+        src: '/videos/brand-story-2.mp4?v=1',
         title: 'Brand Story - Finale',
         category: 'Ad Campaign'
     },
