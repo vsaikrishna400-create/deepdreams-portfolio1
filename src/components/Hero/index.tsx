@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 export default function Hero() {
     return (
         <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20">
-            {/* Logo Icon with continuous float */}
+            {/* Logo Icon (Cropped, Clean) */}
             <div className="mb-6">
                 <motion.img
-                    src="/images/logo-clean.png"
+                    src="/images/logo-icon.png"
                     alt="DeepDreams"
                     className="w-28 md:w-36 lg:w-40 h-auto"
                     animate={{
@@ -23,34 +23,23 @@ export default function Hero() {
                 />
             </div>
 
-            {/* TITLE - DeepDreams with elegant gold styling */}
+            {/* TITLE - DEEPDREAMS (Clean, White, Sans-Serif as requested) */}
             <div className="text-center mb-3 px-4 py-4 relative">
                 <div className="absolute inset-0 bg-gold/5 blur-3xl opacity-20 rounded-full" />
 
                 <motion.h1
-                    className="text-5xl md:text-6xl lg:text-8xl font-bold relative z-10"
+                    className="text-4xl md:text-5xl lg:text-7xl font-bold relative z-10 tracking-[0.2em]"
                     style={{
-                        fontFamily: 'var(--font-italiana), serif',
-                        background: 'linear-gradient(to right, #bf953f, #e8d5a3, #b38728, #e8d5a3, #bf953f)',
-                        backgroundSize: '200% auto',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                        color: 'transparent',
-                        letterSpacing: '0.02em',
-                        lineHeight: '1.4',
-                        paddingBottom: '0.2em',
+                        fontFamily: "'Inter', sans-serif", // Clean Sans-Serif
+                        color: '#ffffff', // Pure White
+                        textShadow: '0 0 20px rgba(255, 255, 255, 0.3)', // Clean white glow
+                        lineHeight: '1.2',
                     }}
-                    animate={{
-                        backgroundPosition: ['0% center', '200% center'],
-                    }}
-                    transition={{
-                        duration: 4,
-                        repeat: Infinity,
-                        ease: "linear"
-                    }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 1, ease: "easeOut" }}
                 >
-                    DeepDreams
+                    DEEPDREAMS
                 </motion.h1>
             </div>
 
