@@ -62,7 +62,7 @@ export default function Hero() {
                         backgroundPosition: { duration: 5, repeat: Infinity, ease: "linear" }
                     }}
                 >
-                    DeepDreams
+                    DEEPDREAMS
                 </motion.h1>
             </div>
 
