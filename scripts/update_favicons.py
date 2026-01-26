@@ -2,7 +2,7 @@ from PIL import Image
 import os
 
 def update_favicons():
-    source_path = "public/images/logo-icon-only.png"
+    source_path = "public/images/logo-final-tab.png"
     public_dir = "public"
     
     if not os.path.exists(source_path):
