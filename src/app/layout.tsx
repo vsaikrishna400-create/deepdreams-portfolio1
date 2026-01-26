@@ -43,6 +43,20 @@ export const metadata: Metadata = {
         title: "DeepDreams AI Studio",
         description: "Transform your dreams into digital reality",
         type: "website",
+        images: [
+            {
+                url: '/images/logo-transparent-new.png',
+                width: 1200,
+                height: 630,
+                alt: 'DeepDreams AI Studio',
+            },
+        ],
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: "DeepDreams AI Studio",
+        description: "Transform your dreams into digital reality",
+        images: ['/images/logo-transparent-new.png'],
     },
 };
 
