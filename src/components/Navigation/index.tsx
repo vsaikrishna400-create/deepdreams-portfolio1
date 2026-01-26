@@ -42,13 +42,13 @@ export default function Navigation() {
                     className="flex items-center gap-3"
                     whileHover={{ scale: 1.02 }}
                 >
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-14 h-14 shrink-0"> {/* Balanced professional size */}
                         <Image
-                            src="/images/logo.jpg"
+                            src="/images/logo-transparent-new.png"
                             alt="DeepDreams"
                             fill
                             className="object-contain rounded-full"
-                            style={{ mixBlendMode: 'lighten' }}
+                            unoptimized
                         />
                     </div>
                     <motion.span
