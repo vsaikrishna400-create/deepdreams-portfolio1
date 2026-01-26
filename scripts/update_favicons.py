@@ -46,23 +46,23 @@ def update_favicons():
 
     # Generate PNG favicons
     for size in icon_sizes:
-        # Use slightly less padding for very small icons to maximize visibility
-        padding = 0.0 if size <= 16 else 0.1
+        # User requested MAX size, so we remove all padding (0.0)
+        padding = 0.0 
         resized_img = resize_contain(img, size, padding)
         output_path = os.path.join(public_dir, f"favicon-{size}x{size}.png")
         resized_img.save(output_path)
         print(f"Generated {output_path}")
 
-    # Generate Apple Touch Icon (less padding for Apple icons usually)
-    apple_img = resize_contain(img, apple_size, 0.1)
+    # Generate Apple Touch Icon (0 padding for max visibility on phones too)
+    apple_img = resize_contain(img, apple_size, 0.0)
     apple_path = os.path.join(public_dir, "apple-touch-icon.png")
     apple_img.save(apple_path)
     print(f"Generated {apple_path}")
     
     # Generate ICO file
     ico_img_16 = resize_contain(img, 16, 0.0)
-    ico_img_32 = resize_contain(img, 32, 0.1)
-    ico_img_48 = resize_contain(img, 48, 0.1)
+    ico_img_32 = resize_contain(img, 32, 0.0)
+    ico_img_48 = resize_contain(img, 48, 0.0)
     ico_path = os.path.join(public_dir, "favicon.ico")
     # Save containing multiple sizes
     ico_img_32.save(ico_path, format='ICO', sizes=[(16, 16), (32, 32), (48, 48)], append_images=[ico_img_16, ico_img_48])
