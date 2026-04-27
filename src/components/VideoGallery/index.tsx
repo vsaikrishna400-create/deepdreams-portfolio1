@@ -314,13 +314,15 @@ function VideoCard({
             {/* Video Thumbnail */}
             <video
                 ref={videoRef}
-                src={video.src}
                 muted
                 loop
                 playsInline
                 preload="metadata"
                 className="w-full h-full object-cover"
-            />
+            >
+                <source src={encodeURI(video.src)} type="video/mp4" />
+                Your browser does not support the video tag.
+            </video>
 
             {/* Always-visible gradient on mobile for readability */}
             <div
@@ -429,12 +431,13 @@ function VideoModal({ src, onClose }: { src: string; onClose: () => void }) {
                 }}
             >
                 <video
-                    src={src}
                     controls
                     autoPlay
                     playsInline
                     className="w-full h-full object-contain bg-black"
-                />
+                >
+                    <source src={encodeURI(src)} type="video/mp4" />
+                </video>
 
                 {/* Close Button — larger tap target on mobile */}
                 <motion.button
