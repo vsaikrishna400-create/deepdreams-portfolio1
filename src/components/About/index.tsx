@@ -5,9 +5,9 @@ import Image from 'next/image';
 
 export default function About() {
     return (
-        <section id="about" className="relative py-32 px-6">
+        <section id="about" className="relative py-20 md:py-32 px-4 md:px-6">
             <div className="max-w-6xl mx-auto">
-                <div className="grid md:grid-cols-2 gap-16 items-center">
+                <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
                     {/* Enhanced Profile Photo with Premium Glow Effects */}
                     <motion.div
                         initial={{ opacity: 0, x: -50 }}
@@ -19,7 +19,7 @@ export default function About() {
                         <div className="relative">
                             {/* Outer animated glow ring */}
                             <motion.div
-                                className="absolute -inset-6 rounded-3xl"
+                                className="absolute -inset-4 md:-inset-6 rounded-3xl"
                                 animate={{
                                     boxShadow: [
                                         '0 0 60px 20px rgba(196, 160, 82, 0.12), 0 0 100px 40px rgba(0, 212, 255, 0.06)',
@@ -32,7 +32,7 @@ export default function About() {
 
                             {/* Ambient background glow */}
                             <div
-                                className="absolute -inset-20 rounded-3xl -z-10"
+                                className="absolute -inset-12 md:-inset-20 rounded-3xl -z-10"
                                 style={{
                                     background: 'radial-gradient(ellipse at center, rgba(196, 160, 82, 0.1) 0%, rgba(0, 212, 255, 0.05) 40%, transparent 70%)',
                                     filter: 'blur(50px)',
@@ -41,7 +41,7 @@ export default function About() {
 
                             {/* Profile image container - taller aspect ratio to show full head and shoulders */}
                             <div
-                                className="relative w-72 md:w-80 rounded-2xl overflow-hidden"
+                                className="relative w-56 sm:w-64 md:w-80 rounded-2xl overflow-hidden"
                                 style={{ aspectRatio: '3/4' }}
                             >
                                 {/* Inner glow ring */}
@@ -56,7 +56,7 @@ export default function About() {
                                     src="/images/headshot-new.png"
                                     alt="Founder of DeepDreams AI Studio"
                                     fill
-                                    sizes="(max-width: 768px) 100vw, 400px"
+                                    sizes="(max-width: 640px) 224px, (max-width: 768px) 256px, 320px"
                                     className="object-cover object-top"
                                     style={{
                                         objectPosition: 'center 15%',
@@ -75,7 +75,7 @@ export default function About() {
 
                             {/* Floating accent particles */}
                             <motion.div
-                                className="absolute -top-3 -right-3 w-3 h-3 rounded-full"
+                                className="absolute -top-3 -right-3 w-2 h-2 md:w-3 md:h-3 rounded-full"
                                 style={{ backgroundColor: '#c4a052' }}
                                 animate={{
                                     y: [-5, 5, -5],
@@ -84,7 +84,7 @@ export default function About() {
                                 transition={{ duration: 3, repeat: Infinity }}
                             />
                             <motion.div
-                                className="absolute -bottom-2 -left-4 w-2 h-2 rounded-full"
+                                className="absolute -bottom-2 -left-4 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full"
                                 style={{ backgroundColor: '#00d4ff' }}
                                 animate={{
                                     y: [5, -5, 5],
@@ -103,7 +103,7 @@ export default function About() {
                         viewport={{ once: true }}
                     >
                         <motion.h2
-                            className="text-3xl md:text-5xl font-bold mb-6"
+                            className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-center md:text-left"
                             style={{
                                 background: 'linear-gradient(135deg, #c4a052 0%, #d4b87a 50%, #c4a052 100%)',
                                 WebkitBackgroundClip: 'text',
@@ -114,20 +114,20 @@ export default function About() {
                             About the Studio
                         </motion.h2>
 
-                        <p className="text-[#b0b0b0] text-lg mb-6 leading-relaxed">
+                        <p className="text-[#b0b0b0] text-base md:text-lg mb-4 md:mb-6 leading-relaxed text-center md:text-left">
                             Welcome to <span className="text-white font-semibold">DeepDreams AI Studio</span>,
                             where cutting-edge artificial intelligence meets creative vision. We specialize in
                             transforming ideas into stunning digital experiences that captivate and inspire.
                         </p>
 
-                        <p className="text-[#b0b0b0] text-lg mb-10 leading-relaxed">
+                        <p className="text-[#b0b0b0] text-base md:text-lg mb-8 md:mb-10 leading-relaxed text-center md:text-left">
                             From revolutionary AI-powered video production to sophisticated web applications
                             and intelligent chatbot solutions, we bring your deepest dreams to life with
                             the power of next-generation technology.
                         </p>
 
                         {/* Premium Stats */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-3 gap-3 md:gap-4">
                             {[
                                 { value: '50+', label: 'AI Videos', color: '#00d4ff' },
                                 { value: '20+', label: 'Happy Clients', color: '#c4a052' },
@@ -135,7 +135,7 @@ export default function About() {
                             ].map((stat, i) => (
                                 <motion.div
                                     key={i}
-                                    className="text-center p-4 rounded-xl"
+                                    className="text-center p-3 md:p-4 rounded-xl"
                                     style={{
                                         background: 'rgba(255, 255, 255, 0.02)',
                                         border: '1px solid rgba(255, 255, 255, 0.05)',
@@ -146,12 +146,12 @@ export default function About() {
                                     }}
                                 >
                                     <div
-                                        className="text-2xl md:text-3xl font-bold mb-1"
+                                        className="text-xl sm:text-2xl md:text-3xl font-bold mb-1"
                                         style={{ color: stat.color }}
                                     >
                                         {stat.value}
                                     </div>
-                                    <div className="text-xs text-[#666] uppercase tracking-wider">{stat.label}</div>
+                                    <div className="text-[10px] sm:text-xs text-[#666] uppercase tracking-wider">{stat.label}</div>
                                 </motion.div>
                             ))}
                         </div>

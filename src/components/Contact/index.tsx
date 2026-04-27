@@ -85,7 +85,7 @@ export default function Contact() {
     const y = useTransform(scrollYProgress, [0, 1], [-50, 50]);
 
     return (
-        <section id="contact" ref={sectionRef} className="relative py-32 px-6 overflow-hidden">
+        <section id="contact" ref={sectionRef} className="relative py-20 md:py-32 px-4 md:px-6 overflow-hidden">
             {/* Animated background accent */}
             <motion.div
                 className="absolute left-0 top-1/3 w-80 h-80 rounded-full -z-10"
@@ -103,17 +103,17 @@ export default function Contact() {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: "easeOut" as const }}
                     viewport={{ once: true }}
-                    className="text-center mb-16"
+                    className="text-center mb-10 md:mb-16"
                 >
                     <motion.div
                         initial={{ scaleX: 0 }}
                         whileInView={{ scaleX: 1 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                         viewport={{ once: true }}
-                        className="w-20 h-0.5 bg-gradient-to-r from-transparent via-[#c4a052] to-transparent mx-auto mb-6"
+                        className="w-16 md:w-20 h-0.5 bg-gradient-to-r from-transparent via-[#c4a052] to-transparent mx-auto mb-4 md:mb-6"
                     />
                     <motion.h2
-                        className="text-4xl md:text-5xl font-bold mb-5"
+                        className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 md:mb-5"
                         style={{
                             background: 'linear-gradient(135deg, #c4a052 0%, #d4b87a 50%, #c4a052 100%)',
                             WebkitBackgroundClip: 'text',
@@ -124,7 +124,7 @@ export default function Contact() {
                         Get in Touch
                     </motion.h2>
                     <motion.p
-                        className="text-[#808080] text-lg max-w-2xl mx-auto"
+                        className="text-[#808080] text-sm md:text-lg max-w-2xl mx-auto px-2"
                         initial={{ opacity: 0 }}
                         whileInView={{ opacity: 1 }}
                         transition={{ delay: 0.3 }}
@@ -140,7 +140,7 @@ export default function Contact() {
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true }}
-                    className="grid md:grid-cols-2 gap-5"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-5"
                 >
                     {contactInfo.map((contact, index) => (
                         <motion.a
@@ -155,7 +155,7 @@ export default function Contact() {
                                 transition: { duration: 0.2 }
                             }}
                             whileTap={{ scale: 0.98 }}
-                            className="relative p-5 rounded-xl flex items-center gap-4 group cursor-pointer overflow-hidden"
+                            className="relative p-4 md:p-5 rounded-xl flex items-center gap-3 md:gap-4 group cursor-pointer overflow-hidden"
                             style={{
                                 background: 'rgba(20, 20, 20, 0.6)',
                                 border: '1px solid rgba(255, 255, 255, 0.05)',

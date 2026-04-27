@@ -195,7 +195,7 @@ export default function Services() {
     const [hoveredId, setHoveredId] = useState<string | null>(null);
 
     return (
-        <section id="services" className="relative py-32 px-6">
+        <section id="services" className="relative py-20 md:py-32 px-4 md:px-6">
             <div className="max-w-6xl mx-auto">
                 {/* Section Header */}
                 <motion.div
@@ -203,10 +203,10 @@ export default function Services() {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                     viewport={{ once: true }}
-                    className="text-center mb-20"
+                    className="text-center mb-12 md:mb-20"
                 >
                     <motion.h2
-                        className="text-4xl md:text-5xl font-bold mb-5"
+                        className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 md:mb-5"
                         style={{
                             background: 'linear-gradient(135deg, #c4a052 0%, #d4b87a 50%, #c4a052 100%)',
                             WebkitBackgroundClip: 'text',
@@ -216,7 +216,7 @@ export default function Services() {
                     >
                         Our Services
                     </motion.h2>
-                    <p className="text-[#808080] text-lg max-w-2xl mx-auto">
+                    <p className="text-[#808080] text-sm md:text-lg max-w-2xl mx-auto px-2">
                         Cutting-edge solutions powered by artificial intelligence
                     </p>
                 </motion.div>
@@ -227,7 +227,7 @@ export default function Services() {
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true }}
-                    className="grid md:grid-cols-2 gap-6"
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
                 >
                     {services.map((service) => (
                         <TiltCard key={service.id} service={service} />
@@ -290,7 +290,7 @@ function TiltCard({ service }: { service: typeof services[0] }) {
                     }}
                 />
 
-                <div className="flex flex-col md:flex-row p-8 gap-6 relative z-10" style={{ transform: "translateZ(20px)" }}>
+                <div className="flex flex-col sm:flex-row p-5 md:p-8 gap-4 md:gap-6 relative z-10" style={{ transform: "translateZ(20px)" }}>
                     {/* Icon Container with Floating Effect */}
                     <div className="flex-shrink-0">
                         <motion.div
@@ -310,12 +310,13 @@ function TiltCard({ service }: { service: typeof services[0] }) {
                     {/* Content */}
                     <div className="flex-1">
                         <h3
-                            className="text-2xl font-bold mb-3 transition-colors duration-300"
+
+                            className="text-xl md:text-2xl font-bold mb-2 md:mb-3 transition-colors duration-300"
                             style={{ color: service.color }}
                         >
                             {service.title}
                         </h3>
-                        <p className="text-[#a0a0a0] leading-relaxed text-base">
+                        <p className="text-[#a0a0a0] leading-relaxed text-sm md:text-base">
                             {service.description}
                         </p>
 

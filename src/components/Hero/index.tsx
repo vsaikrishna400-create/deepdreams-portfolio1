@@ -5,11 +5,11 @@ import Image from 'next/image';
 
 export default function Hero() {
     return (
-        <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 overflow-hidden">
+        <section className="relative min-h-screen flex flex-col items-center justify-center px-4 md:px-6 py-16 md:py-20 overflow-hidden">
             {/* Logo Icon with continuous float - Clean Professional Look */}
-            <div className="mb-10 relative z-10 flex justify-center items-center">
+            <div className="mb-6 md:mb-10 relative z-10 flex justify-center items-center">
                 <motion.div
-                    className="relative w-72 md:w-96 lg:w-[30rem] aspect-square"
+                    className="relative w-48 sm:w-64 md:w-80 lg:w-[30rem] aspect-square"
                     style={{
                         filter: 'drop-shadow(0 0 25px rgba(196,160,82,0.3))',
                         willChange: 'transform, filter',
@@ -33,7 +33,7 @@ export default function Hero() {
                         src="/images/logo-transparent-new.png"
                         alt="DeepDreams"
                         fill
-                        sizes="(max-width: 768px) 300px, 500px"
+                        sizes="(max-width: 640px) 200px, (max-width: 768px) 260px, 500px"
                         className="object-contain"
                         priority
                     />
@@ -41,9 +41,9 @@ export default function Hero() {
             </div>
 
             {/* TITLE - DeepDreams with elegant gold styling */}
-            <div className="text-center mb-6 px-4 relative z-10">
+            <div className="text-center mb-4 md:mb-6 px-2 md:px-4 relative z-10">
                 <motion.h1
-                    className="text-4xl md:text-6xl lg:text-7xl font-bold relative z-10 tracking-wider"
+                    className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold relative z-10 tracking-wider"
                     style={{
                         fontFamily: 'var(--font-italiana), serif',
                         background: 'linear-gradient(to right, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%)',
@@ -75,9 +75,9 @@ export default function Hero() {
             </div>
 
             {/* AI Studio with continuous glow pulse */}
-            <div className="text-center mb-6">
+            <div className="text-center mb-4 md:mb-6">
                 <motion.h2
-                    className="text-lg md:text-xl lg:text-2xl font-light tracking-[0.4em] uppercase"
+                    className="text-base sm:text-lg md:text-xl lg:text-2xl font-light tracking-[0.3em] md:tracking-[0.4em] uppercase"
                     style={{ color: '#00d4ff' }}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{
@@ -101,7 +101,7 @@ export default function Hero() {
 
             {/* Decorative line with continuous shimmer */}
             <motion.div
-                className="w-24 h-px mb-6 relative overflow-hidden"
+                className="w-16 md:w-24 h-px mb-4 md:mb-6 relative overflow-hidden"
                 style={{ background: 'linear-gradient(90deg, transparent, #c4a052, transparent)' }}
                 initial={{ scaleX: 0, opacity: 0 }}
                 animate={{ scaleX: 1, opacity: 1 }}
@@ -120,7 +120,7 @@ export default function Hero() {
 
             {/* Tagline with subtle pulse */}
             <motion.p
-                className="text-base md:text-lg text-[#888] max-w-md mx-auto text-center mb-10"
+                className="text-sm sm:text-base md:text-lg text-[#888] max-w-md mx-auto text-center mb-8 md:mb-10 px-4"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: [0.7, 1, 0.7], y: 0 }}
                 transition={{
@@ -133,14 +133,14 @@ export default function Hero() {
 
             {/* CTA Buttons */}
             <motion.div
-                className="flex flex-col sm:flex-row gap-4"
+                className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full sm:w-auto px-6 sm:px-0"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
             >
                 <motion.a
                     href="#portfolio"
-                    className="px-8 py-3.5 rounded-full text-center font-medium text-[#0a0a0a]"
+                    className="px-8 py-3.5 rounded-full text-center font-medium text-[#0a0a0a] text-sm md:text-base"
                     style={{ background: 'linear-gradient(135deg, #c4a052 0%, #d4b87a 100%)' }}
                     whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(196, 160, 82, 0.5)' }}
                     whileTap={{ scale: 0.95 }}
@@ -149,7 +149,7 @@ export default function Hero() {
                 </motion.a>
                 <motion.a
                     href="#contact"
-                    className="px-8 py-3.5 rounded-full text-center font-medium text-[#c4a052] border-2 border-[#c4a052]"
+                    className="px-8 py-3.5 rounded-full text-center font-medium text-[#c4a052] border-2 border-[#c4a052] text-sm md:text-base"
                     whileHover={{ scale: 1.05, backgroundColor: 'rgba(196, 160, 82, 0.15)' }}
                     whileTap={{ scale: 0.95 }}
                 >
@@ -157,9 +157,9 @@ export default function Hero() {
                 </motion.a>
             </motion.div>
 
-            {/* Scroll Indicator with continuous animation */}
+            {/* Scroll Indicator — hidden on small mobile to save space */}
             <motion.div
-                className="absolute bottom-10 left-1/2 -translate-x-1/2"
+                className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 hidden sm:block"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1, delay: 1.2 }}

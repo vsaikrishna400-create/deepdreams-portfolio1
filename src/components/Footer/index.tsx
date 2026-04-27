@@ -7,9 +7,9 @@ export default function Footer() {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="relative py-12 px-6 border-t border-[#1a1a1a]">
+        <footer className="relative py-8 md:py-12 px-4 md:px-6 border-t border-[#1a1a1a]">
             <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="flex flex-col items-center justify-between gap-6 md:flex-row md:gap-8">
                     {/* Logo & Brand */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
