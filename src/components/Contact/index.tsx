@@ -24,8 +24,8 @@ const contactInfo = [
             </svg>
         ),
         label: 'Email',
-        value: 'vemulasaikrishna02@gmail.com',
-        href: 'mailto:vemulasaikrishna02@gmail.com',
+        value: 'k78491809@gmail.com',
+        href: 'mailto:k78491809@gmail.com',
         color: '#c4a052',
     },
     {

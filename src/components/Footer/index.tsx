@@ -67,7 +67,7 @@ export default function Footer() {
 
                         {/* Email */}
                         <a
-                            href="mailto:vemulasaikrishna02@gmail.com"
+                            href="mailto:k78491809@gmail.com"
                             className="w-10 h-10 rounded-full glass-card flex items-center justify-center text-[#a0a0a0] hover:text-[#c4a052] hover:border-[#c4a052] transition-colors"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
