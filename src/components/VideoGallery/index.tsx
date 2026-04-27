@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
-const videos = [
+// Fallback videos in case the sheet fetch fails or is empty
+const defaultVideos = [
     {
         src: '/videos/shiva.mp4',
         title: 'Mother\'s Blessing - Scene 1',
@@ -51,13 +52,95 @@ const videos = [
     },
 ];
 
+// Spreadsheet ID from .env.local
+const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_ID || '';
+
+/**
+ * Converts a standard Google Drive share link into a direct streamable link for <video> tags.
+ */
+function getGoogleDriveDirectLink(url: string) {
+    if (!url || !url.includes('drive.google.com')) return url;
+    const match = url.match(/\/d\/([^/]+)/);
+    if (match && match[1]) {
+        // Direct download link for streaming
+        return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+    }
+    return url;
+}
+
 export default function VideoGallery() {
+    const [videos, setVideos] = useState(defaultVideos);
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
     const [filter, setFilter] = useState<string>('All');
+    const [loading, setLoading] = useState(true);
     const sectionRef = useRef(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
+
+    // Fetch data from Google Sheet on mount
+    useEffect(() => {
+        async function fetchSheetData() {
+            if (!SPREADSHEET_ID) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                // Add a timestamp to avoid browser caching of the sheet
+                const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&t=${Date.now()}`;
+                const response = await fetch(url);
+                const csvText = await response.text();
+                
+                const allRows = csvText.split('\n').map(row => row.split(','));
+                
+                // Smart header detection: find the row that actually contains the word "title"
+                const headerIndex = allRows.findIndex(row => 
+                    row.some(cell => cell.trim().toLowerCase() === 'title')
+                );
+
+                if (headerIndex === -1) {
+                    console.error("Could not find a valid header row in the spreadsheet.");
+                    setLoading(false);
+                    return;
+                }
+
+                const headers = allRows[headerIndex].map(h => h.trim().toLowerCase());
+                const dataRows = allRows.slice(headerIndex + 1);
+                
+                const jsonData = dataRows
+                    .filter(row => row.length >= headers.length && row.some(cell => cell.trim() !== ''))
+                    .map(row => {
+                        const obj: any = {};
+                        headers.forEach((header, index) => {
+                            let value = row[index]?.trim() || '';
+                            // Remove quotes
+                            value = value.replace(/^["']|["']$/g, '');
+                            
+                            if (header === 'category') {
+                                obj[header] = value.split(/[|,]/).map(c => c.trim()).filter(c => c !== '');
+                            } else if (header === 'src') {
+                                obj[header] = getGoogleDriveDirectLink(value);
+                            } else {
+                                obj[header] = value;
+                            }
+                        });
+                        return obj;
+                    })
+                    .filter(item => item.src && item.src !== ''); // Must have a source link
+
+                if (jsonData.length > 0) {
+                    setVideos(jsonData);
+                }
+            } catch (error) {
+                console.error("Failed to fetch Google Sheet data:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchSheetData();
+    }, []);
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
@@ -66,7 +149,8 @@ export default function VideoGallery() {
 
     const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-    const categories = ['All', 'Father AI', 'Mother AI', 'Grandmother AI', 'Ad Campaign', 'General'];
+    // Dynamic categories based on data
+    const categories = ['All', ...Array.from(new Set(videos.flatMap(v => v.category)))];
 
     const filteredVideos = filter === 'All'
         ? videos
@@ -76,7 +160,6 @@ export default function VideoGallery() {
                 : v.category === filter
         );
 
-    // Track scroll state for fade indicators
     const updateScrollIndicators = useCallback(() => {
         const el = scrollContainerRef.current;
         if (!el) return;
@@ -96,7 +179,6 @@ export default function VideoGallery() {
         };
     }, [updateScrollIndicators]);
 
-    // Scroll the active filter pill into view
     const handleFilterClick = (cat: string) => {
         setFilter(cat);
     };
@@ -114,7 +196,6 @@ export default function VideoGallery() {
             />
 
             <div className="max-w-6xl mx-auto">
-                {/* Section Header with reveal animation */}
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -141,11 +222,11 @@ export default function VideoGallery() {
                         Video Portfolio
                     </motion.h2>
                     <p className="text-[#808080] text-sm md:text-lg max-w-2xl mx-auto px-2">
-                        AI-powered video productions that create emotional connections
+                        {loading && SPREADSHEET_ID ? 'Syncing with dashboard...' : 'AI-powered video productions that create emotional connections'}
                     </p>
                 </motion.div>
 
-                {/* Horizontally Scrollable Filter Tabs — Mobile-First */}
+                {/* Filter Tabs */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -153,12 +234,10 @@ export default function VideoGallery() {
                     viewport={{ once: true }}
                     className="relative mb-10 md:mb-14"
                 >
-                    {/* Left fade indicator */}
                     <div
                         className={`absolute left-0 top-0 bottom-0 w-8 z-10 pointer-events-none transition-opacity duration-300 md:hidden ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}
                         style={{ background: 'linear-gradient(to right, #0a0a0a 0%, transparent 100%)' }}
                     />
-                    {/* Right fade indicator */}
                     <div
                         className={`absolute right-0 top-0 bottom-0 w-8 z-10 pointer-events-none transition-opacity duration-300 md:hidden ${canScrollRight ? 'opacity-100' : 'opacity-0'}`}
                         style={{ background: 'linear-gradient(to left, #0a0a0a 0%, transparent 100%)' }}
@@ -200,7 +279,7 @@ export default function VideoGallery() {
                     </div>
                 </motion.div>
 
-                {/* Video Grid — responsive: 1 col mobile, 2 col tablet, 3 col desktop */}
+                {/* Video Grid */}
                 <motion.div
                     layout
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
@@ -217,8 +296,7 @@ export default function VideoGallery() {
                     </AnimatePresence>
                 </motion.div>
 
-                {/* Empty state */}
-                {filteredVideos.length === 0 && (
+                {filteredVideos.length === 0 && !loading && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -253,7 +331,7 @@ function VideoCard({
     index,
     onClick
 }: {
-    video: typeof videos[0];
+    video: any;
     index: number;
     onClick: () => void;
 }) {
@@ -276,7 +354,6 @@ function VideoCard({
         }
     };
 
-    // Mobile: show overlay on first tap, play on second tap
     const handleTouchStart = () => {
         if (!isTouched) {
             setIsTouched(true);
@@ -311,8 +388,8 @@ function VideoCard({
             }}
             whileHover={{ y: -5 }}
         >
-            {/* Video Thumbnail */}
             <video
+                key={video.src}
                 ref={videoRef}
                 muted
                 loop
@@ -320,11 +397,10 @@ function VideoCard({
                 preload="metadata"
                 className="w-full h-full object-cover"
             >
-                <source src={encodeURI(video.src)} type="video/mp4" />
+                <source src={video.src} type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
 
-            {/* Always-visible gradient on mobile for readability */}
             <div
                 className="absolute inset-0 md:opacity-0 opacity-100"
                 style={{
@@ -332,7 +408,6 @@ function VideoCard({
                 }}
             />
 
-            {/* Animated Gradient Overlay — desktop hover only */}
             <motion.div
                 className="absolute inset-0 hidden md:block"
                 initial={{ opacity: 0 }}
@@ -343,7 +418,6 @@ function VideoCard({
                 }}
             />
 
-            {/* Play Button */}
             <motion.div
                 className="absolute inset-0 flex items-center justify-center"
                 initial={{ opacity: 0, scale: 0.5 }}
@@ -368,7 +442,6 @@ function VideoCard({
                 </motion.div>
             </motion.div>
 
-            {/* Title Bar — always visible on mobile, hover-only on desktop */}
             <motion.div
                 className="absolute bottom-0 left-0 right-0 p-3 md:p-4"
                 initial={false}
@@ -384,24 +457,11 @@ function VideoCard({
                     {video.title}
                 </div>
             </motion.div>
-
-            {/* Corner accent */}
-            <motion.div
-                className="absolute top-0 right-0 w-12 h-12 md:w-16 md:h-16 overflow-hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: active ? 1 : 0 }}
-            >
-                <div
-                    className="absolute -top-6 -right-6 md:-top-8 md:-right-8 w-12 h-12 md:w-16 md:h-16 rotate-45"
-                    style={{ background: 'linear-gradient(135deg, #c4a052 0%, transparent 60%)' }}
-                />
-            </motion.div>
         </motion.div>
     );
 }
 
 function VideoModal({ src, onClose }: { src: string; onClose: () => void }) {
-    // Lock body scroll when modal is open
     useEffect(() => {
         document.body.style.overflow = 'hidden';
         return () => {
@@ -436,10 +496,9 @@ function VideoModal({ src, onClose }: { src: string; onClose: () => void }) {
                     playsInline
                     className="w-full h-full object-contain bg-black"
                 >
-                    <source src={encodeURI(src)} type="video/mp4" />
+                    <source src={src} type="video/mp4" />
                 </video>
 
-                {/* Close Button — larger tap target on mobile */}
                 <motion.button
                     onClick={onClose}
                     className="absolute top-2 right-2 md:top-4 md:right-4 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white"
