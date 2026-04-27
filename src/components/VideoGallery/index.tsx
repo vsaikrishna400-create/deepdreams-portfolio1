@@ -5,47 +5,47 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 
 const videos = [
     {
-        src: '/videos/shiva.mp4?v=2',
+        src: '/videos/shiva.mp4',
         title: 'Mother\'s Blessing - Scene 1',
         category: ['Mother AI']
     },
     {
-        src: '/videos/ajay.mp4?v=2',
+        src: '/videos/ajay.mp4',
         title: 'Mother\'s Blessing - Scene 2',
         category: ['Mother AI']
     },
     {
-        src: '/videos/celebration.mp4?v=2',
+        src: '/videos/celebration.mp4',
         title: 'Family Celebration',
         category: ['General']
     },
     {
-        src: '/videos/temple.mp4?v=2',
+        src: '/videos/temple.mp4',
         title: 'Spiritual Experience',
         category: ['General']
     },
     {
-        src: '/videos/brand-story-1.mp4?v=2',
+        src: '/videos/brand-story-1.mp4',
         title: 'Brand Story - Part 1',
         category: ['Ad Campaign']
     },
     {
-        src: '/videos/brand-story-2.mp4?v=2',
+        src: '/videos/brand-story-2.mp4',
         title: 'Brand Story - Finale',
         category: ['Ad Campaign']
     },
     {
-        src: '/videos/Amamma Ai video Mobile.mp4?v=2',
+        src: '/videos/amamma-ai-video-mobile.mp4',
         title: 'Grandmother\'s Legacy',
         category: ['Grandmother AI']
     },
     {
-        src: '/videos/father-mother-ai.mp4?v=2',
+        src: '/videos/father-mother-ai.mp4',
         title: 'Father & Mother Reunion',
         category: ['Father AI', 'Mother AI']
     },
     {
-        src: '/videos/father-grandmother-ai.mp4?v=2',
+        src: '/videos/father-grandmother-ai.mp4',
         title: 'Father & Grandmother Blessings',
         category: ['Father AI', 'Grandmother AI']
     },
