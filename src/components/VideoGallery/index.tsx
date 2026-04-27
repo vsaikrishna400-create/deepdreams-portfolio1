@@ -58,17 +58,12 @@ const defaultVideos: Video[] = [
     },
 ];
 
-// Spreadsheet ID from .env.local
 const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_ID || '';
 
-/**
- * Converts a standard Google Drive share link into a direct streamable link for <video> tags.
- */
 function getGoogleDriveDirectLink(url: string) {
     if (!url || !url.includes('drive.google.com')) return url;
     const match = url.match(/\/d\/([^/]+)/);
     if (match && match[1]) {
-        // Direct download link for streaming
         return `https://drive.google.com/uc?export=download&id=${match[1]}`;
     }
     return url;
@@ -84,7 +79,6 @@ export default function VideoGallery() {
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
 
-    // Fetch data from Google Sheet on mount
     useEffect(() => {
         async function fetchSheetData() {
             if (!SPREADSHEET_ID) {
@@ -93,20 +87,16 @@ export default function VideoGallery() {
             }
 
             try {
-                // Add a timestamp to avoid browser caching of the sheet
                 const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&t=${Date.now()}`;
                 const response = await fetch(url);
                 const csvText = await response.text();
                 
                 const allRows = csvText.split('\n').map(row => row.split(','));
-                
-                // Smart header detection: find the row that actually contains the word "title"
                 const headerIndex = allRows.findIndex(row => 
                     row.some(cell => cell.trim().toLowerCase() === 'title')
                 );
 
                 if (headerIndex === -1) {
-                    console.error("Could not find a valid header row in the spreadsheet.");
                     setLoading(false);
                     return;
                 }
@@ -117,10 +107,9 @@ export default function VideoGallery() {
                 const jsonData: Video[] = dataRows
                     .filter(row => row.length >= headers.length && row.some(cell => cell.trim() !== ''))
                     .map(row => {
-                        const obj: any = {};
+                        const obj: Record<string, string | string[]> = {};
                         headers.forEach((header, index) => {
                             let value = row[index]?.trim() || '';
-                            // Remove quotes
                             value = value.replace(/^["']|["']$/g, '');
                             
                             if (header === 'category') {
@@ -131,9 +120,9 @@ export default function VideoGallery() {
                                 obj[header] = value;
                             }
                         });
-                        return obj as Video;
+                        return obj as unknown as Video;
                     })
-                    .filter(item => item.src && item.src !== ''); // Must have a source link
+                    .filter(item => item.src && item.src !== '');
 
                 if (jsonData.length > 0) {
                     setVideos(jsonData);
@@ -155,7 +144,6 @@ export default function VideoGallery() {
 
     const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-    // Dynamic categories based on data
     const categories = ['All', ...Array.from(new Set(videos.flatMap(v => v.category)))];
 
     const filteredVideos = filter === 'All'
@@ -185,13 +173,8 @@ export default function VideoGallery() {
         };
     }, [updateScrollIndicators]);
 
-    const handleFilterClick = (cat: string) => {
-        setFilter(cat);
-    };
-
     return (
         <section id="portfolio" ref={sectionRef} className="relative py-20 md:py-32 px-4 md:px-6 overflow-hidden">
-            {/* Animated background accent */}
             <motion.div
                 className="absolute right-0 top-1/2 w-96 h-96 rounded-full -z-10"
                 style={{
@@ -232,7 +215,6 @@ export default function VideoGallery() {
                     </p>
                 </motion.div>
 
-                {/* Filter Tabs */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -261,7 +243,7 @@ export default function VideoGallery() {
                         {categories.map((cat, i) => (
                             <motion.button
                                 key={cat}
-                                onClick={() => handleFilterClick(cat)}
+                                onClick={() => setFilter(cat)}
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.4 + i * 0.08 }}
@@ -285,7 +267,6 @@ export default function VideoGallery() {
                     </div>
                 </motion.div>
 
-                {/* Video Grid */}
                 <motion.div
                     layout
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
@@ -319,7 +300,6 @@ export default function VideoGallery() {
                 )}
             </div>
 
-            {/* Video Modal */}
             <AnimatePresence>
                 {selectedVideo && (
                     <VideoModal
