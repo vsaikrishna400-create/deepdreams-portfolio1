@@ -3,8 +3,14 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
+interface Video {
+    src: string;
+    title: string;
+    category: string[];
+}
+
 // Fallback videos in case the sheet fetch fails or is empty
-const defaultVideos = [
+const defaultVideos: Video[] = [
     {
         src: '/videos/shiva.mp4',
         title: 'Mother\'s Blessing - Scene 1',
@@ -69,11 +75,11 @@ function getGoogleDriveDirectLink(url: string) {
 }
 
 export default function VideoGallery() {
-    const [videos, setVideos] = useState(defaultVideos);
+    const [videos, setVideos] = useState<Video[]>(defaultVideos);
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
     const [filter, setFilter] = useState<string>('All');
     const [loading, setLoading] = useState(true);
-    const sectionRef = useRef(null);
+    const sectionRef = useRef<HTMLElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
@@ -108,7 +114,7 @@ export default function VideoGallery() {
                 const headers = allRows[headerIndex].map(h => h.trim().toLowerCase());
                 const dataRows = allRows.slice(headerIndex + 1);
                 
-                const jsonData = dataRows
+                const jsonData: Video[] = dataRows
                     .filter(row => row.length >= headers.length && row.some(cell => cell.trim() !== ''))
                     .map(row => {
                         const obj: any = {};
@@ -125,7 +131,7 @@ export default function VideoGallery() {
                                 obj[header] = value;
                             }
                         });
-                        return obj;
+                        return obj as Video;
                     })
                     .filter(item => item.src && item.src !== ''); // Must have a source link
 
@@ -331,7 +337,7 @@ function VideoCard({
     index,
     onClick
 }: {
-    video: any;
+    video: Video;
     index: number;
     onClick: () => void;
 }) {
