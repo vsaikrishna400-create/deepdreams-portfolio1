@@ -26,18 +26,14 @@ const italiana = Italiana({
 });
 
 export const metadata: Metadata = {
+    metadataBase: new URL('https://deepdreams-portfolio.vercel.app'),
     title: "DeepDreams AI Studio | AI Video Production & Web Development",
     description: "Transform your dreams into digital reality with DeepDreams AI Studio. Expert AI video production, stunning web applications, and intelligent chatbot solutions.",
     keywords: ["AI Video", "Web Development", "Chatbots", "AI Agents", "Digital Production"],
     authors: [{ name: "DeepDreams AI Studio" }],
     icons: {
-        icon: [
-            { url: '/favicon-16x16.png?v=5', sizes: '16x16', type: 'image/png' },
-            { url: '/favicon-32x32.png?v=5', sizes: '32x32', type: 'image/png' },
-            { url: '/favicon-48x48.png?v=5', sizes: '48x48', type: 'image/png' },
-        ],
-        shortcut: '/favicon.ico?v=5',
-        apple: '/apple-touch-icon.png?v=5',
+        icon: '/favicon.ico',
+        apple: '/apple-touch-icon.png',
     },
     openGraph: {
         title: "DeepDreams AI Studio",
@@ -66,8 +62,8 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className="dark">
-            <body className={`${inter.variable} ${playfair.variable} ${cinzel.variable} antialiased bg-[#0a0a0a] text-white`}>
+        <html lang="en" className="dark" suppressHydrationWarning>
+            <body className={`${inter.variable} ${playfair.variable} ${cinzel.variable} ${italiana.variable} antialiased bg-[#0a0a0a] text-white`}>
                 {children}
             </body>
         </html>

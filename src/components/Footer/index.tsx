@@ -23,6 +23,7 @@ export default function Footer() {
                                 src="/images/logo.jpg"
                                 alt="DeepDreams AI Studio"
                                 fill
+                                sizes="48px"
                                 className="object-contain rounded-full"
                             />
                         </div>

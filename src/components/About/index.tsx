@@ -53,9 +53,10 @@ export default function About() {
                                 />
 
                                 <Image
-                                    src="/images/headshot.png"
+                                    src="/images/headshot-new.png"
                                     alt="Founder of DeepDreams AI Studio"
                                     fill
+                                    sizes="(max-width: 768px) 100vw, 400px"
                                     className="object-cover object-top"
                                     style={{
                                         objectPosition: 'center 15%',

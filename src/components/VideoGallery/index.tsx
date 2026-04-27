@@ -5,34 +5,49 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 
 const videos = [
     {
-        src: '/videos/shiva.mp4?v=1',
-        title: 'Try Beauty - Blessing Scene',
-        category: 'Try Beauty'
+        src: '/videos/shiva.mp4?v=2',
+        title: 'Mother\'s Blessing - Scene 1',
+        category: ['Mother AI']
     },
     {
-        src: '/videos/ajay.mp4?v=1',
-        title: 'Mother\'s Blessing Video',
-        category: 'Try Beauty'
+        src: '/videos/ajay.mp4?v=2',
+        title: 'Mother\'s Blessing - Scene 2',
+        category: ['Mother AI']
     },
     {
-        src: '/videos/celebration.mp4?v=1',
-        title: 'Celebration Moment',
-        category: 'Try Beauty'
+        src: '/videos/celebration.mp4?v=2',
+        title: 'Family Celebration',
+        category: ['General']
     },
     {
-        src: '/videos/temple.mp4?v=1',
-        title: 'Temple Experience',
-        category: 'Ad Campaign'
+        src: '/videos/temple.mp4?v=2',
+        title: 'Spiritual Experience',
+        category: ['General']
     },
     {
-        src: '/videos/brand-story-1.mp4?v=1',
+        src: '/videos/brand-story-1.mp4?v=2',
         title: 'Brand Story - Part 1',
-        category: 'Ad Campaign'
+        category: ['Ad Campaign']
     },
     {
-        src: '/videos/brand-story-2.mp4?v=1',
+        src: '/videos/brand-story-2.mp4?v=2',
         title: 'Brand Story - Finale',
-        category: 'Ad Campaign'
+        category: ['Ad Campaign']
+    },
+    {
+        src: '/videos/Amamma Ai video Mobile.mp4?v=2',
+        title: 'Grandmother\'s Legacy',
+        category: ['Grandmother AI']
+    },
+    {
+        src: '/videos/father-mother-ai.mp4?v=2',
+        title: 'Father & Mother Reunion',
+        category: ['Father AI', 'Mother AI']
+    },
+    {
+        src: '/videos/father-grandmother-ai.mp4?v=2',
+        title: 'Father & Grandmother Blessings',
+        category: ['Father AI', 'Grandmother AI']
     },
 ];
 
@@ -48,11 +63,15 @@ export default function VideoGallery() {
 
     const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-    const categories = ['All', 'Try Beauty', 'Ad Campaign'];
+    const categories = ['All', 'Father AI', 'Mother AI', 'Grandmother AI', 'Sister AI', 'Brother AI', 'General'];
 
     const filteredVideos = filter === 'All'
         ? videos
-        : videos.filter(v => v.category === filter);
+        : videos.filter(v => 
+            Array.isArray(v.category) 
+                ? v.category.includes(filter) 
+                : v.category === filter
+        );
 
     return (
         <section id="portfolio" ref={sectionRef} className="relative py-32 px-6 overflow-hidden">
@@ -271,7 +290,7 @@ function VideoCard({
                 <motion.div
                     className="text-sm text-[#c4a052] mb-1 font-medium"
                 >
-                    {video.category}
+                    {Array.isArray(video.category) ? video.category.join(' & ') : video.category}
                 </motion.div>
                 <motion.div className="text-white font-semibold">
                     {video.title}

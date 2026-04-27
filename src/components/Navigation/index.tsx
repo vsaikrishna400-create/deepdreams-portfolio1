@@ -47,6 +47,7 @@ export default function Navigation() {
                             src="/images/logo-transparent-new.png"
                             alt="DeepDreams"
                             fill
+                            sizes="56px"
                             className="object-contain rounded-full"
                             unoptimized
                         />

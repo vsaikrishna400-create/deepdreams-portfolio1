@@ -1,16 +1,15 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 export default function Hero() {
     return (
         <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 overflow-hidden">
             {/* Logo Icon with continuous float - Clean Professional Look */}
             <div className="mb-10 relative z-10 flex justify-center items-center">
-                <motion.img
-                    src="/images/logo-transparent-new.png"
-                    alt="DeepDreams"
-                    className="w-72 md:w-96 lg:w-[30rem] h-auto drop-shadow-2xl relative z-10" // Significantly Larger
+                <motion.div
+                    className="relative w-72 md:w-96 lg:w-[30rem] aspect-square"
                     style={{
                         filter: 'drop-shadow(0 0 25px rgba(196,160,82,0.3))',
                         willChange: 'transform, filter',
@@ -29,7 +28,16 @@ export default function Hero() {
                         repeat: Infinity,
                         ease: [0.45, 0, 0.55, 1]
                     }}
-                />
+                >
+                    <Image
+                        src="/images/logo-transparent-new.png"
+                        alt="DeepDreams"
+                        fill
+                        sizes="(max-width: 768px) 300px, 500px"
+                        className="object-contain"
+                        priority
+                    />
+                </motion.div>
             </div>
 
             {/* TITLE - DeepDreams with elegant gold styling */}
@@ -37,7 +45,7 @@ export default function Hero() {
                 <motion.h1
                     className="text-4xl md:text-6xl lg:text-7xl font-bold relative z-10 tracking-wider"
                     style={{
-                        fontFamily: 'var(--font-cinzel), serif',
+                        fontFamily: 'var(--font-italiana), serif',
                         background: 'linear-gradient(to right, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%)',
                         backgroundSize: '200% auto',
                         WebkitBackgroundClip: 'text',
