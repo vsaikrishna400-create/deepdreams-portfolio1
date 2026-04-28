@@ -62,30 +62,26 @@ function extractDriveFileId(url: string): string | null {
 }
 
 /**
- * Processes video URLs to provide the most professional streaming experience.
- * Supports:
- * 1. Google Drive (Direct stream for <100MB)
- * 2. Dropbox (Automatic direct stream for any size - Best for Mobile)
+ * Processes video URLs for professional streaming.
+ * Google Drive videos are routed through our server-side proxy
+ * to bypass CORS restrictions and eliminate all Google branding.
  */
 function getProcessedVideoLink(url: string): { src: string; isDrive: boolean } {
     if (!url) return { src: '', isDrive: false };
 
-    // Handle Dropbox (The Professional Mobile Choice)
+    // Handle Dropbox
     if (url.includes('dropbox.com')) {
-        // Automatically convert share link to direct stream link
         const directLink = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '').replace('&dl=0', '');
         return { src: directLink, isDrive: false };
     }
 
-    // Handle Google Drive
+    // Handle Google Drive — route through our server-side proxy
     if (url.includes('drive.google.com')) {
         const fileId = extractDriveFileId(url);
         if (fileId) {
-            // Optimized for <100MB direct streaming (White-label, no cookies)
-            // Using export=view instead of export=download for better browser compatibility
-            return { 
-                src: `https://drive.google.com/uc?export=view&id=${fileId}`, 
-                isDrive: true 
+            return {
+                src: `/api/video/${fileId}`,
+                isDrive: true
             };
         }
     }
