@@ -62,13 +62,14 @@ function extractDriveFileId(url: string): string | null {
 }
 
 /**
- * Converts a Google Drive share link to an embeddable preview URL.
- * The /preview endpoint works reliably inside <iframe> tags.
+ * Converts a Google Drive share link to a direct stream URL.
+ * Note: Google blocks direct streaming for files > 100MB to enforce virus scanning.
+ * Compressing videos to < 100MB allows a seamless white-label experience.
  */
 function getGoogleDriveEmbedLink(url: string): string {
     const fileId = extractDriveFileId(url);
     if (fileId) {
-        return `https://drive.google.com/file/d/${fileId}/preview`;
+        return `https://drive.google.com/uc?id=${fileId}&export=download`;
     }
     return url;
 }
@@ -326,17 +327,20 @@ function VideoCard({
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isHovered, setIsHovered] = useState(false);
     const [isTouched, setIsTouched] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    const videoSrc = video.isDrive ? getGoogleDriveEmbedLink(video.src) : video.src;
 
     const handleMouseEnter = () => {
         setIsHovered(true);
-        if (!video.isDrive && videoRef.current) {
+        if (videoRef.current) {
             videoRef.current.play().catch(() => { });
         }
     };
 
     const handleMouseLeave = () => {
         setIsHovered(false);
-        if (!video.isDrive && videoRef.current) {
+        if (videoRef.current) {
             videoRef.current.pause();
             videoRef.current.currentTime = 0;
         }
@@ -346,7 +350,7 @@ function VideoCard({
         if (!isTouched) {
             setIsTouched(true);
             setIsHovered(true);
-            if (!video.isDrive && videoRef.current) {
+            if (videoRef.current) {
                 videoRef.current.play().catch(() => { });
             }
         }
@@ -376,32 +380,30 @@ function VideoCard({
             }}
             whileHover={{ y: -5 }}
         >
-            {/* Google Drive videos use iframe; local videos use <video> */}
-            {video.isDrive ? (
-                <iframe
-                    src={video.src}
-                    className="w-full h-full border-0 pointer-events-none"
-                    allow="autoplay; encrypted-media"
-                    allowFullScreen
-                    title={video.title}
-                    loading="lazy"
-                />
-            ) : (
-                <video
-                    key={video.src}
-                    ref={videoRef}
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    className="w-full h-full object-cover"
-                >
-                    <source src={video.src} type="video/mp4" />
-                    Your browser does not support the video tag.
-                </video>
+            {!isLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0a] z-10">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-8 h-8 border-2 border-[#c4a052] border-t-transparent rounded-full"
+                    />
+                </div>
             )}
 
-            {/* Gradient overlay */}
+            <video
+                key={videoSrc}
+                ref={videoRef}
+                src={videoSrc}
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                onLoadedData={() => setIsLoaded(true)}
+                className="w-full h-full object-cover"
+            >
+                Your browser does not support the video tag.
+            </video>
+
             <div
                 className="absolute inset-0 md:opacity-0 opacity-100"
                 style={{
@@ -493,25 +495,16 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
                     border: '1px solid rgba(196, 160, 82, 0.2)',
                 }}
             >
-                {/* Google Drive videos use iframe with full controls; local use <video> */}
-                {video.isDrive ? (
-                    <iframe
-                        src={video.src}
-                        className="w-full h-full border-0"
-                        allow="autoplay; encrypted-media; fullscreen"
-                        allowFullScreen
-                        title={video.title}
-                    />
-                ) : (
-                    <video
-                        controls
-                        autoPlay
-                        playsInline
-                        className="w-full h-full object-contain bg-black"
-                    >
-                        <source src={video.src} type="video/mp4" />
-                    </video>
-                )}
+                {/* Professional Video Player */}
+                <video
+                    controls
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-contain bg-black"
+                    src={video.isDrive ? getGoogleDriveEmbedLink(video.src) : video.src}
+                >
+                    Your browser does not support the video tag.
+                </video>
 
                 <motion.button
                     onClick={onClose}
