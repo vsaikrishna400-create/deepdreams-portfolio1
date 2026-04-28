@@ -13,59 +13,41 @@ interface Video {
 // Fallback videos in case the sheet fetch fails or is empty
 const defaultVideos: Video[] = [
     {
-        src: '/videos/shiva.mp4',
-        title: 'Mother\'s Blessing - Scene 1',
-        category: ['Mother AI'],
-        isDrive: false
+        src: 'https://drive.google.com/file/d/1xMZ84MmEY7zK-GhOQtv9PryWGVer0mW6/view',
+        title: 'Family Members AI',
+        category: ['Family'],
+        isDrive: true
     },
     {
-        src: '/videos/ajay.mp4',
-        title: 'Mother\'s Blessing - Scene 2',
-        category: ['Mother AI'],
-        isDrive: false
+        src: 'https://drive.google.com/file/d/1ya_-WB3euB5TBGxbz-K5Sx_4cPUoNvJp/view',
+        title: 'Father and Grandmother',
+        category: ['Father', 'Grandmother'],
+        isDrive: true
     },
     {
-        src: '/videos/celebration.mp4',
-        title: 'Family Celebration',
-        category: ['General'],
-        isDrive: false
+        src: 'https://drive.google.com/file/d/1qTarPa9No0wadIKOAWOr4mrsO_wWSOy6/view',
+        title: 'Father AI Video',
+        category: ['Father'],
+        isDrive: true
     },
     {
-        src: '/videos/temple.mp4',
-        title: 'Spiritual Experience',
-        category: ['General'],
-        isDrive: false
+        src: 'https://drive.google.com/file/d/1LiYnIN7BmnT87L6adrwZsiXhpoYTylFN/view',
+        title: 'Grandfather AI Video',
+        category: ['Grandfather'],
+        isDrive: true
     },
     {
-        src: '/videos/brand-story-1.mp4',
-        title: 'Brand Story - Part 1',
-        category: ['Ad Campaign'],
-        isDrive: false
+        src: 'https://drive.google.com/file/d/1ys2wXRXz3KUKIDDKv7OxuVXv1P3o31ao/view',
+        title: 'Small Brother AI Video',
+        category: ['Brother'],
+        isDrive: true
     },
     {
-        src: '/videos/brand-story-2.mp4',
-        title: 'Brand Story - Finale',
-        category: ['Ad Campaign'],
-        isDrive: false
-    },
-    {
-        src: '/videos/amamma-ai-video-mobile.mp4',
-        title: 'Grandmother\'s Legacy',
-        category: ['Grandmother AI'],
-        isDrive: false
-    },
-    {
-        src: '/videos/father-mother-ai.mp4',
-        title: 'Father & Mother Reunion',
-        category: ['Father AI', 'Mother AI'],
-        isDrive: false
-    },
-    {
-        src: '/videos/father-grandmother-ai.mp4',
-        title: 'Father & Grandmother Blessings',
-        category: ['Father AI', 'Grandmother AI'],
-        isDrive: false
-    },
+        src: 'https://drive.google.com/file/d/1By-9HttTtxD1STdo8CEQFD_yZisYwgo4/view',
+        title: 'Trending Father AI',
+        category: ['Father'],
+        isDrive: true
+    }
 ];
 
 const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_ID || '';
