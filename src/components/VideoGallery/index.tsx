@@ -356,6 +356,8 @@ function VideoCard({
     const [isLoaded, setIsLoaded] = useState(false);
     const [error, setError] = useState(false);
 
+    const [isBuffering, setIsBuffering] = useState(false);
+
     const handleMouseEnter = () => {
         if (error) return;
         setIsHovered(true);
@@ -368,7 +370,7 @@ function VideoCard({
         setIsHovered(false);
         if (videoRef.current) {
             videoRef.current.pause();
-            videoRef.current.currentTime = 0;
+            // Don't reset to 0 to make resumes faster and feel smoother
         }
     };
 
@@ -434,12 +436,14 @@ function VideoCard({
                 muted
                 loop
                 playsInline
-                preload="metadata"
+                preload="auto"
                 crossOrigin="anonymous"
                 onLoadedData={() => {
                     setIsLoaded(true);
                     setError(false);
                 }}
+                onWaiting={() => setIsBuffering(true)}
+                onPlaying={() => setIsBuffering(false)}
                 onError={() => {
                     setError(true);
                     setIsLoaded(true);
@@ -450,7 +454,7 @@ function VideoCard({
             </video>
 
             <div
-                className="absolute inset-0 md:opacity-0 opacity-100"
+                className="absolute inset-0 md:opacity-0 opacity-100 transition-opacity duration-300"
                 style={{
                     background: 'linear-gradient(180deg, transparent 40%, rgba(10, 10, 10, 0.85) 100%)',
                 }}
@@ -466,9 +470,9 @@ function VideoCard({
                 }}
             />
 
-            {/* Play button overlay */}
+            {/* Play/Buffer overlay */}
             <motion.div
-                className="absolute inset-0 flex items-center justify-center"
+                className="absolute inset-0 flex items-center justify-center pointer-events-none"
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{
                     opacity: active ? 1 : 0.7,
@@ -476,8 +480,15 @@ function VideoCard({
                 }}
                 transition={{ duration: 0.3 }}
             >
-                <motion.div
-                    className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center"
+                {isBuffering && active ? (
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-12 h-12 md:w-16 md:h-16 rounded-full border-4 border-[#c4a052] border-t-transparent shadow-[0_0_30px_rgba(196,160,82,0.5)]"
+                    />
+                ) : (
+                    <motion.div
+                        className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center"
                     style={{
                         background: 'linear-gradient(135deg, rgba(196, 160, 82, 0.95) 0%, rgba(212, 184, 122, 0.95) 100%)',
                         boxShadow: '0 0 30px rgba(196, 160, 82, 0.5)',
@@ -489,6 +500,7 @@ function VideoCard({
                         <path d="M8 5v14l11-7z" />
                     </svg>
                 </motion.div>
+                )}
             </motion.div>
 
             {/* Title & category label */}

@@ -14,24 +14,32 @@ export async function GET(
     }
 
     try {
-        // Step 1: Try direct download URL
+        const range = request.headers.get('range');
+        const fetchHeaders: Record<string, string> = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        };
+        if (range) fetchHeaders['Range'] = range;
+
+        const buildResponseHeaders = (res: Response, contentType: string) => {
+            const responseHeaders = new Headers({
+                'Content-Type': contentType.includes('video') ? contentType : 'video/mp4',
+                'Access-Control-Allow-Origin': '*',
+                'Accept-Ranges': 'bytes',
+            });
+            const contentRange = res.headers.get('content-range');
+            if (contentRange) responseHeaders.set('Content-Range', contentRange);
+            const contentLength = res.headers.get('content-length');
+            if (contentLength) responseHeaders.set('Content-Length', contentLength);
+            return responseHeaders;
+        };
+
         const driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-
-        const response = await fetch(driveUrl, {
-            headers: {
-                'User-Agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            },
-            redirect: 'follow',
-        });
-
+        const response = await fetch(driveUrl, { headers: fetchHeaders, redirect: 'follow' });
         const contentType = response.headers.get('content-type') || '';
 
         // If Google returned HTML, it means a confirmation page was shown
         if (contentType.includes('text/html')) {
             const html = await response.text();
-
-            // Extract the confirm token from the virus-scan warning page
             const confirmMatch = html.match(/confirm=([0-9A-Za-z_-]+)/);
             const uuidMatch = html.match(/uuid=([0-9A-Za-z_-]+)/);
 
@@ -40,62 +48,33 @@ export async function GET(
                 const uuid = uuidMatch ? uuidMatch[1] : '';
                 const confirmedUrl = `https://drive.google.com/uc?export=download&confirm=${token}&id=${fileId}${uuid ? `&uuid=${uuid}` : ''}`;
 
-                const confirmedResponse = await fetch(confirmedUrl, {
-                    headers: {
-                        'User-Agent':
-                            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    },
-                    redirect: 'follow',
-                });
-
+                const confirmedResponse = await fetch(confirmedUrl, { headers: fetchHeaders, redirect: 'follow' });
                 if (confirmedResponse.body) {
                     return new Response(confirmedResponse.body, {
-                        status: 200,
-                        headers: {
-                            'Content-Type': 'video/mp4',
-                            'Cache-Control': 'public, max-age=86400, s-maxage=86400',
-                            'Access-Control-Allow-Origin': '*',
-                        },
+                        status: confirmedResponse.status,
+                        headers: buildResponseHeaders(confirmedResponse, 'video/mp4'),
                     });
                 }
             }
 
-            // Fallback: try export=view which sometimes bypasses the confirmation
+            // Fallback: try export=view
             const viewUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
-            const viewResponse = await fetch(viewUrl, {
-                headers: {
-                    'User-Agent':
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                },
-                redirect: 'follow',
-            });
-
+            const viewResponse = await fetch(viewUrl, { headers: fetchHeaders, redirect: 'follow' });
             if (viewResponse.body && !viewResponse.headers.get('content-type')?.includes('text/html')) {
                 return new Response(viewResponse.body, {
-                    status: 200,
-                    headers: {
-                        'Content-Type': 'video/mp4',
-                        'Cache-Control': 'public, max-age=86400, s-maxage=86400',
-                        'Access-Control-Allow-Origin': '*',
-                    },
+                    status: viewResponse.status,
+                    headers: buildResponseHeaders(viewResponse, 'video/mp4'),
                 });
             }
 
-            return NextResponse.json(
-                { error: 'Could not resolve video from Google Drive' },
-                { status: 502 }
-            );
+            return NextResponse.json({ error: 'Could not resolve video from Google Drive' }, { status: 502 });
         }
 
-        // Google served the file directly — stream it through
+        // Google served the file directly — stream it through with Range support
         if (response.body) {
             return new Response(response.body, {
-                status: 200,
-                headers: {
-                    'Content-Type': contentType.includes('video') ? contentType : 'video/mp4',
-                    'Cache-Control': 'public, max-age=86400, s-maxage=86400',
-                    'Access-Control-Allow-Origin': '*',
-                },
+                status: response.status,
+                headers: buildResponseHeaders(response, contentType),
             });
         }
 
