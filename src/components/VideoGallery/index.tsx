@@ -387,6 +387,8 @@ function VideoCard({
         }
     };
 
+    const active = isHovered || isTouched;
+
     return (
         <motion.div
             layout
