@@ -1,7 +1,6 @@
 'use client';
 
 import { motion, Variants, useMotionValue, useTransform } from 'framer-motion';
-import { useState, MouseEvent } from 'react';
 
 // Professional, abstract service representations with SVG icons
 const services = [
@@ -181,19 +180,7 @@ const containerVariants: Variants = {
     },
 };
 
-const cardVariants: Variants = {
-    hidden: { opacity: 0, y: 30, scale: 0.95 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        transition: { duration: 0.5, ease: "easeOut" }
-    },
-};
-
 export default function Services() {
-    const [hoveredId, setHoveredId] = useState<string | null>(null);
-
     return (
         <section id="services" className="relative py-20 md:py-32 px-4 md:px-6">
             <div className="max-w-6xl mx-auto">

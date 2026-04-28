@@ -142,7 +142,7 @@ export default function Contact() {
                     viewport={{ once: true }}
                     className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-5"
                 >
-                    {contactInfo.map((contact, index) => (
+                    {contactInfo.map((contact) => (
                         <motion.a
                             key={contact.label}
                             href={contact.href}

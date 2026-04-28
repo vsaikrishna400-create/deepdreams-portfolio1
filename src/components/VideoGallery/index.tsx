@@ -7,6 +7,7 @@ interface Video {
     src: string;
     title: string;
     category: string[];
+    isDrive: boolean;
 }
 
 // Fallback videos in case the sheet fetch fails or is empty
@@ -14,64 +15,85 @@ const defaultVideos: Video[] = [
     {
         src: '/videos/shiva.mp4',
         title: 'Mother\'s Blessing - Scene 1',
-        category: ['Mother AI']
+        category: ['Mother AI'],
+        isDrive: false
     },
     {
         src: '/videos/ajay.mp4',
         title: 'Mother\'s Blessing - Scene 2',
-        category: ['Mother AI']
+        category: ['Mother AI'],
+        isDrive: false
     },
     {
         src: '/videos/celebration.mp4',
         title: 'Family Celebration',
-        category: ['General']
+        category: ['General'],
+        isDrive: false
     },
     {
         src: '/videos/temple.mp4',
         title: 'Spiritual Experience',
-        category: ['General']
+        category: ['General'],
+        isDrive: false
     },
     {
         src: '/videos/brand-story-1.mp4',
         title: 'Brand Story - Part 1',
-        category: ['Ad Campaign']
+        category: ['Ad Campaign'],
+        isDrive: false
     },
     {
         src: '/videos/brand-story-2.mp4',
         title: 'Brand Story - Finale',
-        category: ['Ad Campaign']
+        category: ['Ad Campaign'],
+        isDrive: false
     },
     {
         src: '/videos/amamma-ai-video-mobile.mp4',
         title: 'Grandmother\'s Legacy',
-        category: ['Grandmother AI']
+        category: ['Grandmother AI'],
+        isDrive: false
     },
     {
         src: '/videos/father-mother-ai.mp4',
         title: 'Father & Mother Reunion',
-        category: ['Father AI', 'Mother AI']
+        category: ['Father AI', 'Mother AI'],
+        isDrive: false
     },
     {
         src: '/videos/father-grandmother-ai.mp4',
         title: 'Father & Grandmother Blessings',
-        category: ['Father AI', 'Grandmother AI']
+        category: ['Father AI', 'Grandmother AI'],
+        isDrive: false
     },
 ];
 
 const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_ID || '';
 
-function getGoogleDriveDirectLink(url: string) {
-    if (!url || !url.includes('drive.google.com')) return url;
+/**
+ * Extracts the Google Drive file ID from a share URL.
+ */
+function extractDriveFileId(url: string): string | null {
+    if (!url || !url.includes('drive.google.com')) return null;
     const match = url.match(/\/d\/([^/]+)/);
-    if (match && match[1]) {
-        return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+    return match ? match[1] : null;
+}
+
+/**
+ * Converts a Google Drive share link to an embeddable preview URL.
+ * The /preview endpoint works reliably inside <iframe> tags.
+ */
+function getGoogleDriveEmbedLink(url: string): string {
+    const fileId = extractDriveFileId(url);
+    if (fileId) {
+        return `https://drive.google.com/file/d/${fileId}/preview`;
     }
     return url;
 }
 
 export default function VideoGallery() {
     const [videos, setVideos] = useState<Video[]>(defaultVideos);
-    const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+    const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
     const [filter, setFilter] = useState<string>('All');
     const [loading, setLoading] = useState(true);
     const sectionRef = useRef<HTMLElement>(null);
@@ -107,20 +129,15 @@ export default function VideoGallery() {
                 const jsonData: Video[] = dataRows
                     .filter(row => row.length >= headers.length && row.some(cell => cell.trim() !== ''))
                     .map(row => {
-                        const obj: Record<string, string | string[]> = {};
-                        headers.forEach((header, index) => {
-                            let value = row[index]?.trim() || '';
-                            value = value.replace(/^["']|["']$/g, '');
-                            
-                            if (header === 'category') {
-                                obj[header] = value.split(/[|,]/).map(c => c.trim()).filter(c => c !== '');
-                            } else if (header === 'src') {
-                                obj[header] = getGoogleDriveDirectLink(value);
-                            } else {
-                                obj[header] = value;
-                            }
-                        });
-                        return obj as unknown as Video;
+                        const title = row[headers.indexOf('title')]?.trim().replace(/^["']|["']$/g, '') || '';
+                        const rawSrc = row[headers.indexOf('src')]?.trim().replace(/^["']|["']$/g, '') || '';
+                        const rawCategory = row[headers.indexOf('category')]?.trim().replace(/^["']|["']$/g, '') || '';
+
+                        const isDrive = rawSrc.includes('drive.google.com');
+                        const src = isDrive ? getGoogleDriveEmbedLink(rawSrc) : rawSrc;
+                        const category = rawCategory.split(/[|]/).map(c => c.trim()).filter(c => c !== '');
+
+                        return { title, src, category, isDrive };
                     })
                     .filter(item => item.src && item.src !== '');
 
@@ -215,6 +232,7 @@ export default function VideoGallery() {
                     </p>
                 </motion.div>
 
+                {/* Filter Tabs */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -267,6 +285,7 @@ export default function VideoGallery() {
                     </div>
                 </motion.div>
 
+                {/* Video Grid */}
                 <motion.div
                     layout
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
@@ -277,7 +296,7 @@ export default function VideoGallery() {
                                 key={video.src}
                                 video={video}
                                 index={index}
-                                onClick={() => setSelectedVideo(video.src)}
+                                onClick={() => setSelectedVideo(video)}
                             />
                         ))}
                     </AnimatePresence>
@@ -300,10 +319,11 @@ export default function VideoGallery() {
                 )}
             </div>
 
+            {/* Video Modal */}
             <AnimatePresence>
                 {selectedVideo && (
                     <VideoModal
-                        src={selectedVideo}
+                        video={selectedVideo}
                         onClose={() => setSelectedVideo(null)}
                     />
                 )}
@@ -327,14 +347,14 @@ function VideoCard({
 
     const handleMouseEnter = () => {
         setIsHovered(true);
-        if (videoRef.current) {
+        if (!video.isDrive && videoRef.current) {
             videoRef.current.play().catch(() => { });
         }
     };
 
     const handleMouseLeave = () => {
         setIsHovered(false);
-        if (videoRef.current) {
+        if (!video.isDrive && videoRef.current) {
             videoRef.current.pause();
             videoRef.current.currentTime = 0;
         }
@@ -344,7 +364,7 @@ function VideoCard({
         if (!isTouched) {
             setIsTouched(true);
             setIsHovered(true);
-            if (videoRef.current) {
+            if (!video.isDrive && videoRef.current) {
                 videoRef.current.play().catch(() => { });
             }
         }
@@ -374,19 +394,32 @@ function VideoCard({
             }}
             whileHover={{ y: -5 }}
         >
-            <video
-                key={video.src}
-                ref={videoRef}
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                className="w-full h-full object-cover"
-            >
-                <source src={video.src} type="video/mp4" />
-                Your browser does not support the video tag.
-            </video>
+            {/* Google Drive videos use iframe; local videos use <video> */}
+            {video.isDrive ? (
+                <iframe
+                    src={video.src}
+                    className="w-full h-full border-0 pointer-events-none"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                    title={video.title}
+                    loading="lazy"
+                />
+            ) : (
+                <video
+                    key={video.src}
+                    ref={videoRef}
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    className="w-full h-full object-cover"
+                >
+                    <source src={video.src} type="video/mp4" />
+                    Your browser does not support the video tag.
+                </video>
+            )}
 
+            {/* Gradient overlay */}
             <div
                 className="absolute inset-0 md:opacity-0 opacity-100"
                 style={{
@@ -404,6 +437,7 @@ function VideoCard({
                 }}
             />
 
+            {/* Play button overlay */}
             <motion.div
                 className="absolute inset-0 flex items-center justify-center"
                 initial={{ opacity: 0, scale: 0.5 }}
@@ -428,6 +462,7 @@ function VideoCard({
                 </motion.div>
             </motion.div>
 
+            {/* Title & category label */}
             <motion.div
                 className="absolute bottom-0 left-0 right-0 p-3 md:p-4"
                 initial={false}
@@ -447,7 +482,7 @@ function VideoCard({
     );
 }
 
-function VideoModal({ src, onClose }: { src: string; onClose: () => void }) {
+function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
     useEffect(() => {
         document.body.style.overflow = 'hidden';
         return () => {
@@ -476,18 +511,29 @@ function VideoModal({ src, onClose }: { src: string; onClose: () => void }) {
                     border: '1px solid rgba(196, 160, 82, 0.2)',
                 }}
             >
-                <video
-                    controls
-                    autoPlay
-                    playsInline
-                    className="w-full h-full object-contain bg-black"
-                >
-                    <source src={src} type="video/mp4" />
-                </video>
+                {/* Google Drive videos use iframe with full controls; local use <video> */}
+                {video.isDrive ? (
+                    <iframe
+                        src={video.src}
+                        className="w-full h-full border-0"
+                        allow="autoplay; encrypted-media; fullscreen"
+                        allowFullScreen
+                        title={video.title}
+                    />
+                ) : (
+                    <video
+                        controls
+                        autoPlay
+                        playsInline
+                        className="w-full h-full object-contain bg-black"
+                    >
+                        <source src={video.src} type="video/mp4" />
+                    </video>
+                )}
 
                 <motion.button
                     onClick={onClose}
-                    className="absolute top-2 right-2 md:top-4 md:right-4 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white"
+                    className="absolute top-2 right-2 md:top-4 md:right-4 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white z-10"
                     style={{
                         background: 'rgba(0, 0, 0, 0.6)',
                         backdropFilter: 'blur(10px)',

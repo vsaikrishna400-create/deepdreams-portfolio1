@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, useSpring, useMotionValue } from 'framer-motion';
 
 export default function GlassmorphismBackground() {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+
 
     // Mouse position with spring physics
     const mouseX = useMotionValue(0);
