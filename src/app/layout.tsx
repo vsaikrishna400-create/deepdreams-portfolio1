@@ -26,6 +26,7 @@ const italiana = Italiana({
 });
 
 export const metadata: Metadata = {
+    referrer: 'no-referrer',
     metadataBase: new URL('https://deepdreams-portfolio.vercel.app'),
     title: "DeepDreams AI Studio | AI Video Production & Web Development",
     description: "Transform your dreams into digital reality with DeepDreams AI Studio. Expert AI video production, stunning web applications, and intelligent chatbot solutions.",

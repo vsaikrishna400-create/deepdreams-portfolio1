@@ -440,7 +440,6 @@ function VideoCard({
                 playsInline
                 preload="metadata"
                 crossOrigin="anonymous"
-                referrerPolicy="no-referrer"
                 onLoadedData={() => {
                     setIsLoaded(true);
                     setError(false);
@@ -550,7 +549,6 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
                     autoPlay
                     playsInline
                     crossOrigin="anonymous"
-                    referrerPolicy="no-referrer"
                     className="w-full h-full object-contain bg-black"
                     src={video.src}
                 >
