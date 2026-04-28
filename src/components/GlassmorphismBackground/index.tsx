@@ -18,7 +18,6 @@ export default function GlassmorphismBackground() {
 
     useEffect(() => {
         const updateWindowSize = () => {
-            setWindowSize({ width: window.innerWidth, height: window.innerHeight });
             // Initialize orb at center
             if (mouseX.get() === 0 && mouseY.get() === 0) {
                 mouseX.set(window.innerWidth / 2);
