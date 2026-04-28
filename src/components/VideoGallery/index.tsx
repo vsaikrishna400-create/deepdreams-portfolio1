@@ -75,12 +75,12 @@ function getProcessedVideoLink(url: string): { src: string; isDrive: boolean } {
         return { src: directLink, isDrive: false };
     }
 
-    // Handle Google Drive — route through our server-side proxy
+    // Handle Google Drive — direct CDN link for maximum speed
     if (url.includes('drive.google.com')) {
         const fileId = extractDriveFileId(url);
         if (fileId) {
             return {
-                src: `/api/video/${fileId}`,
+                src: `https://drive.google.com/uc?export=download&id=${fileId}`,
                 isDrive: true
             };
         }
@@ -437,7 +437,6 @@ function VideoCard({
                 loop
                 playsInline
                 preload="auto"
-                crossOrigin="anonymous"
                 onLoadedData={() => {
                     setIsLoaded(true);
                     setError(false);
@@ -556,7 +555,6 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
                     controls
                     autoPlay
                     playsInline
-                    crossOrigin="anonymous"
                     className="w-full h-full object-contain bg-black"
                     src={video.src}
                 >
