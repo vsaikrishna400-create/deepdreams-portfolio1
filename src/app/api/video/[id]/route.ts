@@ -4,9 +4,10 @@ export const runtime = 'edge';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    context: any
 ) {
-    const { id: fileId } = await params;
+    const params = await context.params;
+    const fileId = params.id;
 
     if (!fileId || fileId.length < 10) {
         return NextResponse.json({ error: 'Invalid file ID' }, { status: 400 });
