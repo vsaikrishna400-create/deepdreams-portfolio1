@@ -357,8 +357,10 @@ function VideoCard({
     const [isHovered, setIsHovered] = useState(false);
     const [isTouched, setIsTouched] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [error, setError] = useState(false);
 
     const handleMouseEnter = () => {
+        if (error) return;
         setIsHovered(true);
         if (videoRef.current) {
             videoRef.current.play().catch(() => { });
@@ -374,6 +376,7 @@ function VideoCard({
     };
 
     const handleTouchStart = () => {
+        if (error) return;
         if (!isTouched) {
             setIsTouched(true);
             setIsHovered(true);
@@ -382,8 +385,6 @@ function VideoCard({
             }
         }
     };
-
-    const active = isHovered || isTouched;
 
     return (
         <motion.div
@@ -407,13 +408,23 @@ function VideoCard({
             }}
             whileHover={{ y: -5 }}
         >
-            {!isLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0a] z-10">
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-8 h-8 border-2 border-[#c4a052] border-t-transparent rounded-full"
-                    />
+            {(!isLoaded || error) && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] z-10 p-4">
+                    {error ? (
+                        <div className="text-center">
+                            <svg className="w-6 h-6 text-red-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <p className="text-[10px] text-white/80 font-medium">Restricted Access</p>
+                            <p className="text-[8px] text-white/50">Check Drive Permissions</p>
+                        </div>
+                    ) : (
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            className="w-8 h-8 border-2 border-[#c4a052] border-t-transparent rounded-full"
+                        />
+                    )}
                 </div>
             )}
 
@@ -425,7 +436,14 @@ function VideoCard({
                 loop
                 playsInline
                 preload="metadata"
-                onLoadedData={() => setIsLoaded(true)}
+                onLoadedData={() => {
+                    setIsLoaded(true);
+                    setError(false);
+                }}
+                onError={() => {
+                    setError(true);
+                    setIsLoaded(true);
+                }}
                 className="w-full h-full object-cover"
             >
                 Your browser does not support the video tag.
