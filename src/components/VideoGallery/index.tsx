@@ -110,16 +110,21 @@ export default function VideoGallery() {
             }
 
             try {
+                // Force no-cache to ensure we get the latest sheet data every time
                 const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&t=${Date.now()}`;
-                const response = await fetch(url);
+                const response = await fetch(url, { cache: 'no-store' });
+                
+                if (!response.ok) throw new Error('Failed to fetch spreadsheet');
+                
                 const csvText = await response.text();
                 
                 const allRows = csvText.split('\n').map(row => row.split(','));
                 const headerIndex = allRows.findIndex(row => 
-                    row.some(cell => cell.trim().toLowerCase() === 'title')
+                    row.some(cell => cell.trim().toLowerCase().includes('title'))
                 );
 
                 if (headerIndex === -1) {
+                    console.error('Could not find header row in spreadsheet');
                     setLoading(false);
                     return;
                 }
@@ -127,12 +132,18 @@ export default function VideoGallery() {
                 const headers = allRows[headerIndex].map(h => h.trim().toLowerCase());
                 const dataRows = allRows.slice(headerIndex + 1);
                 
+                // Helper to find index even if there are extra spaces in headers
+                const getColIndex = (name: string) => headers.findIndex(h => h.includes(name));
+                const titleIdx = getColIndex('title');
+                const srcIdx = getColIndex('src');
+                const catIdx = getColIndex('category');
+
                 const jsonData: Video[] = dataRows
-                    .filter(row => row.length >= headers.length && row.some(cell => cell.trim() !== ''))
+                    .filter(row => row.length >= 2 && row[srcIdx]?.trim() !== '')
                     .map(row => {
-                        const title = row[headers.indexOf('title')]?.trim().replace(/^["']|["']$/g, '') || '';
-                        const rawSrc = row[headers.indexOf('src')]?.trim().replace(/^["']|["']$/g, '') || '';
-                        const rawCategory = row[headers.indexOf('category')]?.trim().replace(/^["']|["']$/g, '') || '';
+                        const title = row[titleIdx]?.trim().replace(/^["']|["']$/g, '') || 'Untitled AI Video';
+                        const rawSrc = row[srcIdx]?.trim().replace(/^["']|["']$/g, '') || '';
+                        const rawCategory = row[catIdx]?.trim().replace(/^["']|["']$/g, '') || 'General';
 
                         const { src, isDrive } = getProcessedVideoLink(rawSrc);
                         const category = rawCategory.split(/[|]/).map(c => c.trim()).filter(c => c !== '');
