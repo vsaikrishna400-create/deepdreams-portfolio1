@@ -139,22 +139,23 @@ export default function VideoGallery() {
                 const catIdx = getColIndex('category');
 
                 const jsonData: Video[] = dataRows
-                    .filter(row => row.length >= 2 && row[srcIdx]?.trim() !== '')
+                    .filter(row => row.length > 1 && row[srcIdx] && row[srcIdx].trim() !== '')
                     .map(row => {
-                        const title = row[titleIdx]?.trim().replace(/^["']|["']$/g, '') || 'Untitled AI Video';
-                        const rawSrc = row[srcIdx]?.trim().replace(/^["']|["']$/g, '') || '';
-                        const rawCategory = row[catIdx]?.trim().replace(/^["']|["']$/g, '') || 'General';
+                        const title = (row[titleIdx] || '').trim().replace(/^["']|["']$/g, '') || 'Untitled AI Video';
+                        const rawSrc = (row[srcIdx] || '').trim().replace(/^["']|["']$/g, '') || '';
+                        const rawCategory = (row[catIdx] || '').trim().replace(/^["']|["']$/g, '') || 'General';
 
                         const { src, isDrive } = getProcessedVideoLink(rawSrc);
                         const category = rawCategory.split(/[|]/).map(c => c.trim()).filter(c => c !== '');
 
                         return { title, src, category, isDrive };
                     })
-                    .filter(item => item.src && item.src !== '');
+                    .filter(video => video.src !== '');
 
                 if (jsonData.length > 0) {
                     setVideos(jsonData);
                 }
+                setLoading(false);
             } catch (error) {
                 console.error("Failed to fetch Google Sheet data:", error);
             } finally {
