@@ -81,8 +81,9 @@ function getProcessedVideoLink(url: string): { src: string; isDrive: boolean } {
     if (url.includes('drive.google.com')) {
         const fileId = extractDriveFileId(url);
         if (fileId) {
+            // Optimized for <100MB direct streaming (White-label, no cookies)
             return { 
-                src: `https://drive.google.com/uc?id=${fileId}&export=download`, 
+                src: `https://drive.google.com/uc?export=download&id=${fileId}`, 
                 isDrive: true 
             };
         }
