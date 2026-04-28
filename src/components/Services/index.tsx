@@ -231,12 +231,21 @@ function TiltCard({ service }: { service: typeof services[0] }) {
     const rotateX = useTransform(y, [-100, 100], [5, -5]);
     const rotateY = useTransform(x, [-100, 100], [-5, 5]);
 
+    // Motion values for the glow effect
+    const mouseXPos = useMotionValue(0);
+    const mouseYPos = useMotionValue(0);
+
     function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
         const rect = event.currentTarget.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
+
+        // Update glow position
+        mouseXPos.set(mouseX);
+        mouseYPos.set(mouseY);
+
         const xPct = mouseX / width - 0.5;
         const yPct = mouseY / height - 0.5;
         x.set(xPct * 200);
@@ -272,7 +281,10 @@ function TiltCard({ service }: { service: typeof services[0] }) {
                 <motion.div
                     className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                     style={{
-                        background: `radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), ${service.color}15, transparent 40%)`,
+                        background: useTransform(
+                            [mouseXPos, mouseYPos],
+                            ([latestX, latestY]) => `radial-gradient(600px circle at ${latestX}px ${latestY}px, ${service.color}15, transparent 40%)`
+                        ),
                         zIndex: 0,
                     }}
                 />
