@@ -62,16 +62,33 @@ function extractDriveFileId(url: string): string | null {
 }
 
 /**
- * Converts a Google Drive share link to a direct stream URL.
- * Note: Google blocks direct streaming for files > 100MB to enforce virus scanning.
- * Compressing videos to < 100MB allows a seamless white-label experience.
+ * Processes video URLs to provide the most professional streaming experience.
+ * Supports:
+ * 1. Google Drive (Direct stream for <100MB)
+ * 2. Dropbox (Automatic direct stream for any size - Best for Mobile)
  */
-function getGoogleDriveEmbedLink(url: string): string {
-    const fileId = extractDriveFileId(url);
-    if (fileId) {
-        return `https://drive.google.com/uc?id=${fileId}&export=download`;
+function getProcessedVideoLink(url: string): { src: string; isDrive: boolean } {
+    if (!url) return { src: '', isDrive: false };
+
+    // Handle Dropbox (The Professional Mobile Choice)
+    if (url.includes('dropbox.com')) {
+        // Automatically convert share link to direct stream link
+        const directLink = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '').replace('&dl=0', '');
+        return { src: directLink, isDrive: false };
     }
-    return url;
+
+    // Handle Google Drive
+    if (url.includes('drive.google.com')) {
+        const fileId = extractDriveFileId(url);
+        if (fileId) {
+            return { 
+                src: `https://drive.google.com/uc?id=${fileId}&export=download`, 
+                isDrive: true 
+            };
+        }
+    }
+
+    return { src: url, isDrive: false };
 }
 
 export default function VideoGallery() {
@@ -116,8 +133,7 @@ export default function VideoGallery() {
                         const rawSrc = row[headers.indexOf('src')]?.trim().replace(/^["']|["']$/g, '') || '';
                         const rawCategory = row[headers.indexOf('category')]?.trim().replace(/^["']|["']$/g, '') || '';
 
-                        const isDrive = rawSrc.includes('drive.google.com');
-                        const src = isDrive ? getGoogleDriveEmbedLink(rawSrc) : rawSrc;
+                        const { src, isDrive } = getProcessedVideoLink(rawSrc);
                         const category = rawCategory.split(/[|]/).map(c => c.trim()).filter(c => c !== '');
 
                         return { title, src, category, isDrive };
@@ -329,8 +345,6 @@ function VideoCard({
     const [isTouched, setIsTouched] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
 
-    const videoSrc = video.isDrive ? getGoogleDriveEmbedLink(video.src) : video.src;
-
     const handleMouseEnter = () => {
         setIsHovered(true);
         if (videoRef.current) {
@@ -391,9 +405,9 @@ function VideoCard({
             )}
 
             <video
-                key={videoSrc}
+                key={video.src}
                 ref={videoRef}
-                src={videoSrc}
+                src={video.src}
                 muted
                 loop
                 playsInline
@@ -495,13 +509,12 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
                     border: '1px solid rgba(196, 160, 82, 0.2)',
                 }}
             >
-                {/* Professional Video Player */}
                 <video
                     controls
                     autoPlay
                     playsInline
                     className="w-full h-full object-contain bg-black"
-                    src={video.isDrive ? getGoogleDriveEmbedLink(video.src) : video.src}
+                    src={video.src}
                 >
                     Your browser does not support the video tag.
                 </video>
