@@ -432,49 +432,32 @@ function VideoCard({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onTouchStart={handleTouchStart}
-            onClick={onClick}
-            className="relative aspect-video rounded-xl overflow-hidden cursor-pointer group active:scale-[0.98] transition-transform"
+            onClick={video.isDrive ? undefined : onClick}
+            className="relative aspect-video rounded-xl overflow-hidden group transition-transform"
             style={{
                 background: 'rgba(15, 15, 15, 0.6)',
                 border: '1px solid rgba(255, 255, 255, 0.05)',
             }}
             whileHover={{ y: -5 }}
         >
-            {(!isLoaded || error) && (
+            {(!isLoaded && !video.isDrive) && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] z-10 p-4">
-                    {error ? (
-                        <div className="text-center opacity-50">
-                            <svg className="w-8 h-8 text-[#c4a052] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p className="text-[10px] text-white/80 font-medium">Click to Play</p>
-                        </div>
-                    ) : (
-                        <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            className="w-8 h-8 border-2 border-[#c4a052] border-t-transparent rounded-full"
-                        />
-                    )}
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-8 h-8 border-2 border-[#c4a052] border-t-transparent rounded-full"
+                    />
                 </div>
             )}
 
-            {video.isDrive && video.thumbnail ? (
-                <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="w-full h-full object-cover"
-                    style={{ opacity: error ? 0 : 1 }}
-                    onLoad={() => {
-                        setIsLoaded(true);
-                        setError(false);
-                    }}
-                    onError={() => {
-                        setError(true);
-                        setIsLoaded(true);
-                    }}
-                />
+            {video.isDrive && video.iframeSrc ? (
+                <iframe
+                    src={video.iframeSrc}
+                    allow="autoplay"
+                    className="w-full h-full border-0 bg-black absolute inset-0 z-20"
+                    allowFullScreen
+                    onLoad={() => setIsLoaded(true)}
+                ></iframe>
             ) : (
                 <video
                     key={video.src}
@@ -500,59 +483,65 @@ function VideoCard({
                 </video>
             )}
 
-            <div
-                className="absolute inset-0 md:opacity-0 opacity-100 transition-opacity duration-300"
-                style={{
-                    background: 'linear-gradient(180deg, transparent 40%, rgba(10, 10, 10, 0.85) 100%)',
-                }}
-            />
-
-            <motion.div
-                className="absolute inset-0 hidden md:block"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: active ? 1 : 0 }}
-                transition={{ duration: 0.3 }}
-                style={{
-                    background: 'linear-gradient(180deg, rgba(10, 10, 10, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%)',
-                }}
-            />
-
-            {/* Play/Buffer overlay */}
-            <motion.div
-                className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{
-                    opacity: active ? 1 : 0.7,
-                    scale: active ? 1 : 0.8
-                }}
-                transition={{ duration: 0.3 }}
-            >
-                {isBuffering && active ? (
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-12 h-12 md:w-16 md:h-16 rounded-full border-4 border-[#c4a052] border-t-transparent shadow-[0_0_30px_rgba(196,160,82,0.5)]"
-                    />
-                ) : (
-                    <motion.div
-                        className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center"
+            {!video.isDrive && (
+                <div
+                    className="absolute inset-0 md:opacity-0 opacity-100 transition-opacity duration-300 pointer-events-none"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(196, 160, 82, 0.95) 0%, rgba(212, 184, 122, 0.95) 100%)',
-                        boxShadow: '0 0 30px rgba(196, 160, 82, 0.5)',
+                        background: 'linear-gradient(180deg, transparent 40%, rgba(10, 10, 10, 0.85) 100%)',
                     }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+                />
+            )}
+
+            {!video.isDrive && (
+                <motion.div
+                    className="absolute inset-0 hidden md:block pointer-events-none"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: active ? 1 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    style={{
+                        background: 'linear-gradient(180deg, rgba(10, 10, 10, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%)',
+                    }}
+                />
+            )}
+
+            {/* Play/Buffer overlay - only for non-drive videos */}
+            {!video.isDrive && (
+                <motion.div
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{
+                        opacity: active ? 1 : 0.7,
+                        scale: active ? 1 : 0.8
+                    }}
+                    transition={{ duration: 0.3 }}
                 >
-                    <svg className="w-5 h-5 md:w-7 md:h-7 text-[#0a0a0a] ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
+                    {isBuffering && active ? (
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            className="w-12 h-12 md:w-16 md:h-16 rounded-full border-4 border-[#c4a052] border-t-transparent shadow-[0_0_30px_rgba(196,160,82,0.5)]"
+                        />
+                    ) : (
+                        <motion.div
+                            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(196, 160, 82, 0.95) 0%, rgba(212, 184, 122, 0.95) 100%)',
+                            boxShadow: '0 0 30px rgba(196, 160, 82, 0.5)',
+                        }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                    >
+                        <svg className="w-5 h-5 md:w-7 md:h-7 text-[#0a0a0a] ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                    </motion.div>
+                    )}
                 </motion.div>
-                )}
-            </motion.div>
+            )}
 
             {/* Title & category label */}
             <motion.div
-                className="absolute bottom-0 left-0 right-0 p-3 md:p-4"
+                className="absolute bottom-0 left-0 right-0 p-3 md:p-4 z-30 pointer-events-none"
                 initial={false}
                 animate={{
                     y: active ? 0 : 0,
