@@ -95,7 +95,7 @@ function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; th
 
     // Handle Dropbox
     if (url.includes('dropbox.com')) {
-        // Use raw=1 to enable direct streaming with proper Range Request support, bypassing expiration limits
+        // Use raw=1 to enable direct streaming if possible, but keep originalUrl for fallback
         let directLink = url;
         if (directLink.includes('?')) {
             directLink = directLink.replace('dl=0', 'raw=1');
@@ -103,8 +103,7 @@ function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; th
         } else {
             directLink += '?raw=1';
         }
-        const edgeProxyUrl = `/api/video/proxy?url=${encodeURIComponent(directLink)}`;
-        return { src: edgeProxyUrl, isDrive: false, originalUrl: url };
+        return { src: directLink, isDrive: false, originalUrl: url };
     }
 
     // Handle Google Drive — switch to official preview iframe to bypass all CORS/Restricted errors permanently
