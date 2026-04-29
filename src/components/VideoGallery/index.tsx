@@ -170,7 +170,16 @@ export default function VideoGallery() {
 
     const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-    const categories = ['All', ...Array.from(new Set(videos.flatMap(v => v.category)))];
+    const desiredOrder = ['All', 'Latest', 'Father', 'Mother', 'Grandfather', 'Grandmother', 'Brother', 'Sister'];
+    const categories = Array.from(new Set(['All', ...videos.flatMap(v => v.category)]))
+        .sort((a, b) => {
+            const indexA = desiredOrder.indexOf(a);
+            const indexB = desiredOrder.indexOf(b);
+            if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+        });
 
     const filteredVideos = filter === 'All'
         ? videos
