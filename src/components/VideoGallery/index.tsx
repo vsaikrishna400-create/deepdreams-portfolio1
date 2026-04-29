@@ -245,22 +245,24 @@ function VideoCard({ video, index, onClick }: { video: Video; index: number; onC
             ) : video.videoSrc ? (
                 <video ref={videoRef} src={video.videoSrc} muted loop playsInline preload="metadata"
                     onLoadedData={() => setIsLoaded(true)} onError={() => setIsLoaded(true)}
-                    className="w-full h-full object-cover" />
+                    className="w-full h-full object-cover pointer-events-none" />
             ) : null}
+
+            {/* Transparent click overlay - captures clicks above iframes/videos */}
+            <div className="absolute inset-0 z-40 cursor-pointer" onClick={onClick} />
 
             <div className="absolute inset-0 pointer-events-none z-20" style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(10, 10, 10, 0.85) 100%)' }} />
 
-            {!useIframe && (
-                <motion.div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
-                    initial={{ opacity: 0.7 }} animate={{ opacity: isHovered ? 1 : 0.7, scale: isHovered ? 1 : 0.8 }} transition={{ duration: 0.3 }}>
-                    <motion.div className="w-14 h-14 rounded-full flex items-center justify-center"
-                        style={{ background: 'linear-gradient(135deg, rgba(196, 160, 82, 0.95) 0%, rgba(212, 184, 122, 0.95) 100%)', boxShadow: '0 0 30px rgba(196, 160, 82, 0.5)' }}>
-                        <svg className="w-6 h-6 text-[#0a0a0a] ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                    </motion.div>
+            {/* Play button overlay for all cards */}
+            <motion.div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
+                initial={{ opacity: 0.7 }} animate={{ opacity: isHovered ? 1 : 0.7, scale: isHovered ? 1 : 0.8 }} transition={{ duration: 0.3 }}>
+                <motion.div className="w-14 h-14 rounded-full flex items-center justify-center"
+                    style={{ background: 'linear-gradient(135deg, rgba(196, 160, 82, 0.95) 0%, rgba(212, 184, 122, 0.95) 100%)', boxShadow: '0 0 30px rgba(196, 160, 82, 0.5)' }}>
+                    <svg className="w-6 h-6 text-[#0a0a0a] ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
                 </motion.div>
-            )}
+            </motion.div>
 
-            <motion.div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 z-30 pointer-events-none">
+            <motion.div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 z-50 pointer-events-none">
                 <div className="text-xs md:text-sm text-[#c4a052] mb-0.5 md:mb-1 font-medium">
                     {Array.isArray(video.category) ? video.category.join(' & ') : video.category}
                 </div>
