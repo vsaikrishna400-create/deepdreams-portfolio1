@@ -65,7 +65,7 @@ const defaultVideos: Video[] = [
     }
 ];
 
-const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_ID || '';
+const SPREADSHEET_ID = (process as any).env.NEXT_PUBLIC_SPREADSHEET_ID || '';
 
 /**
  * Extracts the Google Drive file ID from a share URL.
@@ -366,15 +366,6 @@ export default function VideoGallery() {
                 )}
             </div>
 
-            {/* Video Modal */}
-            <AnimatePresence>
-                {selectedVideo && (
-                    <VideoModal
-                        video={selectedVideo}
-                        onClose={() => setSelectedVideo(null)}
-                    />
-                )}
-            </AnimatePresence>
         </section>
     );
 }
