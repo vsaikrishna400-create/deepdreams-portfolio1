@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 interface Video {
     src: string;
@@ -65,6 +65,7 @@ const defaultVideos: Video[] = [
     }
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SPREADSHEET_ID = (process as any).env.NEXT_PUBLIC_SPREADSHEET_ID || '';
 
 /**
@@ -375,7 +376,6 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
     const [isHovered, setIsHovered] = useState(false);
     const [isTouched, setIsTouched] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
-    const [error, setError] = useState(false);
 
     const [isBuffering, setIsBuffering] = useState(false);
 
@@ -457,13 +457,11 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
                     preload="auto"
                     onLoadedData={() => {
                         setIsLoaded(true);
-                        setError(false);
                     }}
                     onWaiting={() => setIsBuffering(true)}
                     onPlaying={() => setIsBuffering(false)}
-                    onError={() => {
-                        setError(true);
-                        setIsLoaded(true);
+                    onError={(e) => {
+                        console.error('Video load error:', e);
                     }}
                     className="w-full h-full object-cover"
                 >
