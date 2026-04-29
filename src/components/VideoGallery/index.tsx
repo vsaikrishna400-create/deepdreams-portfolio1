@@ -9,6 +9,7 @@ interface Video {
     iframeSrc?: string;
     videoSrc?: string;
     thumbnailUrl?: string;
+    originalUrl: string;
     provider: 'youtube' | 'drive' | 'dropbox' | 'other';
 }
 
@@ -36,13 +37,14 @@ function extractDriveFileId(url: string): string | null {
 }
 
 function processVideoUrl(url: string): Omit<Video, 'title' | 'category'> {
-    if (!url) return { provider: 'other' };
+    if (!url) return { provider: 'other', originalUrl: '' };
 
     const ytId = extractYouTubeId(url);
     if (ytId) {
         return {
             iframeSrc: `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1`,
             thumbnailUrl: `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`,
+            originalUrl: url,
             provider: 'youtube',
         };
     }
@@ -51,6 +53,8 @@ function processVideoUrl(url: string): Omit<Video, 'title' | 'category'> {
     if (driveId) {
         return {
             iframeSrc: `https://drive.google.com/file/d/${driveId}/preview`,
+            thumbnailUrl: `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`,
+            originalUrl: url,
             provider: 'drive',
         };
     }
@@ -63,10 +67,10 @@ function processVideoUrl(url: string): Omit<Video, 'title' | 'category'> {
         } else {
             directLink += '?raw=1';
         }
-        return { videoSrc: directLink, provider: 'dropbox' };
+        return { videoSrc: directLink, originalUrl: url, provider: 'dropbox' };
     }
 
-    return { videoSrc: url, provider: 'other' };
+    return { videoSrc: url, originalUrl: url, provider: 'other' };
 }
 
 const defaultVideos: Video[] = [
@@ -225,35 +229,40 @@ function VideoCard({ video, index, onClick }: { video: Video; index: number; onC
         if (videoRef.current) videoRef.current.pause();
     };
 
-    const useIframe = video.provider === 'drive' || video.provider === 'youtube';
+    // We only use the native video element for previews if it's a direct streamable source (Dropbox/other)
+    // and only when hovered to save bandwidth.
+    const canShowPreview = video.provider === 'dropbox' || video.provider === 'other';
 
     return (
         <motion.div layout initial={{ opacity: 0, y: 40, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
             transition={{ duration: 0.5, delay: index * 0.08, layout: { duration: 0.3 } }}
-            onMouseEnter={!useIframe ? handleMouseEnter : undefined} onMouseLeave={!useIframe ? handleMouseLeave : undefined}
-            onClick={onClick} className="relative aspect-video rounded-xl overflow-hidden group cursor-pointer"
-            style={{ background: 'rgba(15, 15, 15, 0.6)', border: '1px solid rgba(255, 255, 255, 0.05)' }} whileHover={{ y: -5 }}>
+            onMouseEnter={canShowPreview ? handleMouseEnter : () => setIsHovered(true)} 
+            onMouseLeave={canShowPreview ? handleMouseLeave : () => setIsHovered(false)}
+            onClick={onClick} className="relative aspect-video rounded-xl overflow-hidden group cursor-pointer bg-[#0f0f0f]"
+            style={{ border: '1px solid rgba(255, 255, 255, 0.05)' }} whileHover={{ y: -5 }}>
 
-            {!isLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0a] z-10">
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="w-8 h-8 border-2 border-[#c4a052] border-t-transparent rounded-full" />
-                </div>
+            {/* Always show thumbnail/background first for instant load */}
+            {video.thumbnailUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={video.thumbnailUrl} alt={video.title} 
+                    className={`w-full h-full object-cover transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoad={() => setIsLoaded(true)} onError={() => setIsLoaded(true)} />
+            ) : (
+                <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]" />
             )}
 
-            {useIframe && video.iframeSrc ? (
-                <iframe src={video.iframeSrc} allow="autoplay; encrypted-media" className="w-full h-full border-0 bg-black pointer-events-none" allowFullScreen onLoad={() => setIsLoaded(true)}></iframe>
-            ) : video.videoSrc ? (
+            {/* Video preview on hover for streamable sources */}
+            {canShowPreview && video.videoSrc && isHovered && (
                 <video ref={videoRef} src={video.videoSrc} muted loop playsInline preload="metadata"
-                    onLoadedData={() => setIsLoaded(true)} onError={() => setIsLoaded(true)}
-                    className="w-full h-full object-cover pointer-events-none" />
-            ) : null}
+                    className="absolute inset-0 w-full h-full object-cover z-10" />
+            )}
 
-            {/* Transparent click overlay - captures clicks above iframes/videos */}
-            <div className="absolute inset-0 z-40 cursor-pointer" onClick={onClick} />
+            {/* Transparent click overlay */}
+            <div className="absolute inset-0 z-40 cursor-pointer" />
 
             <div className="absolute inset-0 pointer-events-none z-20" style={{ background: 'linear-gradient(180deg, transparent 50%, rgba(10, 10, 10, 0.85) 100%)' }} />
 
-            {/* Play button overlay for all cards */}
+            {/* Play button overlay */}
             <motion.div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
                 initial={{ opacity: 0.7 }} animate={{ opacity: isHovered ? 1 : 0.7, scale: isHovered ? 1 : 0.8 }} transition={{ duration: 0.3 }}>
                 <motion.div className="w-14 h-14 rounded-full flex items-center justify-center"
@@ -280,10 +289,11 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}
-            className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.95)' }}>
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center p-2 md:p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.95)' }}>
+            
             <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.7, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }} onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-5xl aspect-video rounded-xl md:rounded-2xl overflow-hidden"
+                className="relative w-full max-w-5xl aspect-video rounded-xl md:rounded-2xl overflow-hidden mb-4"
                 style={{ boxShadow: '0 0 80px rgba(196, 160, 82, 0.25)', border: '1px solid rgba(196, 160, 82, 0.2)' }}>
 
                 {useIframe && modalSrc ? (
@@ -297,6 +307,14 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
                     <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </motion.button>
             </motion.div>
+
+            {/* Fallback link for enterprise reliability */}
+            <motion.a href={video.originalUrl} target="_blank" rel="noopener noreferrer"
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+                className="text-[#c4a052] text-sm md:text-base hover:underline underline-offset-4 flex items-center gap-2 px-6 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-[#c4a052]/20 hover:bg-white/10 transition-all">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                Trouble playing? View on original platform
+            </motion.a>
         </motion.div>
     );
 }
