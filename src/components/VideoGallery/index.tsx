@@ -8,45 +8,59 @@ interface Video {
     title: string;
     category: string[];
     isDrive: boolean;
+    thumbnail?: string;
+    iframeSrc?: string;
 }
 
 // Fallback videos in case the sheet fetch fails or is empty
 const defaultVideos: Video[] = [
     {
-        src: 'https://drive.google.com/file/d/1xMZ84MmEY7zK-GhOQtv9PryWGVer0mW6/view',
+        src: '',
         title: 'Family Members AI',
         category: ['Family'],
-        isDrive: true
+        isDrive: true,
+        thumbnail: 'https://drive.google.com/thumbnail?id=1xMZ84MmEY7zK-GhOQtv9PryWGVer0mW6&sz=w1000',
+        iframeSrc: 'https://drive.google.com/file/d/1xMZ84MmEY7zK-GhOQtv9PryWGVer0mW6/preview'
     },
     {
-        src: 'https://drive.google.com/file/d/1ya_-WB3euB5TBGxbz-K5Sx_4cPUoNvJp/view',
+        src: '',
         title: 'Father and Grandmother',
         category: ['Father', 'Grandmother'],
-        isDrive: true
+        isDrive: true,
+        thumbnail: 'https://drive.google.com/thumbnail?id=1ya_-WB3euB5TBGxbz-K5Sx_4cPUoNvJp&sz=w1000',
+        iframeSrc: 'https://drive.google.com/file/d/1ya_-WB3euB5TBGxbz-K5Sx_4cPUoNvJp/preview'
     },
     {
-        src: 'https://drive.google.com/file/d/1qTarPa9No0wadIKOAWOr4mrsO_wWSOy6/view',
+        src: '',
         title: 'Father AI Video',
         category: ['Father'],
-        isDrive: true
+        isDrive: true,
+        thumbnail: 'https://drive.google.com/thumbnail?id=1qTarPa9No0wadIKOAWOr4mrsO_wWSOy6&sz=w1000',
+        iframeSrc: 'https://drive.google.com/file/d/1qTarPa9No0wadIKOAWOr4mrsO_wWSOy6/preview'
     },
     {
-        src: 'https://drive.google.com/file/d/1LiYnIN7BmnT87L6adrwZsiXhpoYTylFN/view',
+        src: '',
         title: 'Grandfather AI Video',
         category: ['Grandfather'],
-        isDrive: true
+        isDrive: true,
+        thumbnail: 'https://drive.google.com/thumbnail?id=1LiYnIN7BmnT87L6adrwZsiXhpoYTylFN&sz=w1000',
+        iframeSrc: 'https://drive.google.com/file/d/1LiYnIN7BmnT87L6adrwZsiXhpoYTylFN/preview'
     },
     {
-        src: 'https://drive.google.com/file/d/1ys2wXRXz3KUKIDDKv7OxuVXv1P3o31ao/view',
+        src: '',
         title: 'Small Brother AI Video',
         category: ['Brother'],
-        isDrive: true
+        isDrive: true,
+        thumbnail: 'https://drive.google.com/thumbnail?id=1ys2wXRXz3KUKIDDKv7OxuVXv1P3o31ao&sz=w1000',
+        iframeSrc: 'https://drive.google.com/file/d/1ys2wXRXz3KUKIDDKv7OxuVXv1P3o31ao/preview'
     },
     {
-        src: 'https://drive.google.com/file/d/1By-9HttTtxD1STdo8CEQFD_yZisYwgo4/view',
+        src: '',
         title: 'Trending Father AI',
         category: ['Father'],
-        isDrive: true
+        isDrive: true,
+        thumbnail: 'https://drive.google.com/thumbnail?id=1By-9HttTtxD1STdo8CEQFD_yZisYwgo4&sz=w1000',
+        iframeSrc: 'https://drive.google.com/file/d/1By-9HttTtxD1STdo8CEQFD_yZisYwgo4/preview'
     }
 ];
 
@@ -66,7 +80,7 @@ function extractDriveFileId(url: string): string | null {
  * Google Drive videos are routed through our server-side proxy
  * to bypass CORS restrictions and eliminate all Google branding.
  */
-function getProcessedVideoLink(url: string): { src: string; isDrive: boolean } {
+function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; thumbnail?: string; iframeSrc?: string } {
     if (!url) return { src: '', isDrive: false };
 
     // Handle Dropbox
@@ -75,13 +89,15 @@ function getProcessedVideoLink(url: string): { src: string; isDrive: boolean } {
         return { src: directLink, isDrive: false };
     }
 
-    // Handle Google Drive — direct CDN link for maximum speed
+    // Handle Google Drive — switch to official preview iframe to bypass all CORS/Restricted errors permanently
     if (url.includes('drive.google.com')) {
         const fileId = extractDriveFileId(url);
         if (fileId) {
             return {
-                src: `https://drive.google.com/uc?export=download&id=${fileId}`,
-                isDrive: true
+                src: '', // We use thumbnail/iframe instead of raw src for Google Drive
+                isDrive: true,
+                thumbnail: `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`,
+                iframeSrc: `https://drive.google.com/file/d/${fileId}/preview`
             };
         }
     }
@@ -142,12 +158,12 @@ export default function VideoGallery() {
                         const rawSrc = (row[srcIdx] || '').trim().replace(/^["']|["']$/g, '') || '';
                         const rawCategory = (row[catIdx] || '').trim().replace(/^["']|["']$/g, '') || 'General';
 
-                        const { src, isDrive } = getProcessedVideoLink(rawSrc);
+                        const { src, isDrive, thumbnail, iframeSrc } = getProcessedVideoLink(rawSrc);
                         const category = rawCategory.split(/[|]/).map(c => c.trim()).filter(c => c !== '');
 
-                        return { title, src, category, isDrive };
+                        return { title, src, category, isDrive, thumbnail, iframeSrc };
                     })
-                    .filter(video => video.src !== '');
+                    .filter(video => video.src !== '' || video.iframeSrc !== undefined);
 
                 if (jsonData.length > 0) {
                     setVideos(jsonData);
@@ -438,28 +454,44 @@ function VideoCard({
                 </div>
             )}
 
-            <video
-                key={video.src}
-                ref={videoRef}
-                src={video.src}
-                muted
-                loop
-                playsInline
-                preload="auto"
-                onLoadedData={() => {
-                    setIsLoaded(true);
-                    setError(false);
-                }}
-                onWaiting={() => setIsBuffering(true)}
-                onPlaying={() => setIsBuffering(false)}
-                onError={() => {
-                    setError(true);
-                    setIsLoaded(true);
-                }}
-                className="w-full h-full object-cover"
-            >
-                Your browser does not support the video tag.
-            </video>
+            {video.isDrive && video.thumbnail ? (
+                <img
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="w-full h-full object-cover"
+                    onLoad={() => {
+                        setIsLoaded(true);
+                        setError(false);
+                    }}
+                    onError={() => {
+                        setError(true);
+                        setIsLoaded(true);
+                    }}
+                />
+            ) : (
+                <video
+                    key={video.src}
+                    ref={videoRef}
+                    src={video.src}
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    onLoadedData={() => {
+                        setIsLoaded(true);
+                        setError(false);
+                    }}
+                    onWaiting={() => setIsBuffering(true)}
+                    onPlaying={() => setIsBuffering(false)}
+                    onError={() => {
+                        setError(true);
+                        setIsLoaded(true);
+                    }}
+                    className="w-full h-full object-cover"
+                >
+                    Your browser does not support the video tag.
+                </video>
+            )}
 
             <div
                 className="absolute inset-0 md:opacity-0 opacity-100 transition-opacity duration-300"
@@ -560,15 +592,24 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
                     border: '1px solid rgba(196, 160, 82, 0.2)',
                 }}
             >
-                <video
-                    controls
-                    autoPlay
-                    playsInline
-                    className="w-full h-full object-contain bg-black"
-                    src={video.src}
-                >
-                    Your browser does not support the video tag.
-                </video>
+                {video.isDrive && video.iframeSrc ? (
+                    <iframe
+                        src={video.iframeSrc}
+                        allow="autoplay"
+                        className="w-full h-full border-0 bg-black"
+                        allowFullScreen
+                    ></iframe>
+                ) : (
+                    <video
+                        controls
+                        autoPlay
+                        playsInline
+                        className="w-full h-full object-contain bg-black"
+                        src={video.src}
+                    >
+                        Your browser does not support the video tag.
+                    </video>
+                )}
 
                 <motion.button
                     onClick={onClose}
