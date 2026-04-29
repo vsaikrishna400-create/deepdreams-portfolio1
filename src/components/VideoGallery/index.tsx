@@ -71,8 +71,16 @@ const SPREADSHEET_ID = process.env.NEXT_PUBLIC_SPREADSHEET_ID || '';
  */
 function extractDriveFileId(url: string): string | null {
     if (!url || !url.includes('drive.google.com')) return null;
-    const match = url.match(/\/d\/([^/]+)/);
-    return match ? match[1] : null;
+    
+    // Match /d/ID format
+    const matchD = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (matchD) return matchD[1];
+
+    // Match ?id=ID or &id=ID format
+    const matchId = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (matchId) return matchId[1];
+
+    return null;
 }
 
 /**
@@ -457,6 +465,7 @@ function VideoCard({
                     src={video.thumbnail}
                     alt={video.title}
                     className="w-full h-full object-cover"
+                    style={{ opacity: error ? 0 : 1 }}
                     onLoad={() => {
                         setIsLoaded(true);
                         setError(false);
