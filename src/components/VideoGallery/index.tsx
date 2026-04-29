@@ -10,6 +10,7 @@ interface Video {
     isDrive: boolean;
     thumbnail?: string;
     iframeSrc?: string;
+    originalUrl?: string;
 }
 
 // Fallback videos in case the sheet fetch fails or is empty
@@ -88,8 +89,8 @@ function extractDriveFileId(url: string): string | null {
  * Google Drive videos are routed through our server-side proxy
  * to bypass CORS restrictions and eliminate all Google branding.
  */
-function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; thumbnail?: string; iframeSrc?: string } {
-    if (!url) return { src: '', isDrive: false };
+function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; thumbnail?: string; iframeSrc?: string; originalUrl: string } {
+    if (!url) return { src: '', isDrive: false, originalUrl: '' };
 
     // Handle Dropbox
     if (url.includes('dropbox.com')) {
@@ -101,7 +102,7 @@ function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; th
         } else {
             directLink += '?raw=1';
         }
-        return { src: directLink, isDrive: false };
+        return { src: directLink, isDrive: false, originalUrl: url };
     }
 
     // Handle Google Drive — switch to official preview iframe to bypass all CORS/Restricted errors permanently
@@ -112,17 +113,17 @@ function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; th
                 src: '', // We use thumbnail/iframe instead of raw src for Google Drive
                 isDrive: true,
                 thumbnail: `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`,
-                iframeSrc: `https://drive.google.com/file/d/${fileId}/preview`
+                iframeSrc: `https://drive.google.com/file/d/${fileId}/preview`,
+                originalUrl: url
             };
         }
     }
 
-    return { src: url, isDrive: false };
+    return { src: url, isDrive: false, originalUrl: url };
 }
 
 export default function VideoGallery() {
     const [videos, setVideos] = useState<Video[]>(defaultVideos);
-    const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
     const [filter, setFilter] = useState<string>('All');
     const [loading, setLoading] = useState(true);
     const sectionRef = useRef<HTMLElement>(null);
@@ -287,7 +288,7 @@ export default function VideoGallery() {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.3 }}
                     viewport={{ once: true }}
-                    className="relative mb-10 md:mb-14"
+                    className="relative mb-4 md:mb-6"
                 >
                     <div
                         className={`absolute left-0 top-0 bottom-0 w-8 z-10 pointer-events-none transition-opacity duration-300 md:hidden ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`}
@@ -339,16 +340,13 @@ export default function VideoGallery() {
                     layout
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
                 >
-                    <AnimatePresence mode="popLayout">
-                        {filteredVideos.map((video, index) => (
-                            <VideoCard
-                                key={video.src}
-                                video={video}
-                                index={index}
-                                onClick={() => setSelectedVideo(video)}
-                            />
-                        ))}
-                    </AnimatePresence>
+                    {filteredVideos.map((video, index) => (
+                        <VideoCard
+                            key={video.src}
+                            video={video}
+                            index={index}
+                        />
+                    ))}
                 </motion.div>
 
                 {filteredVideos.length === 0 && !loading && (
@@ -381,15 +379,7 @@ export default function VideoGallery() {
     );
 }
 
-function VideoCard({
-    video,
-    index,
-    onClick
-}: {
-    video: Video;
-    index: number;
-    onClick: () => void;
-}) {
+function VideoCard({ video, index }: { video: Video; index: number }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isHovered, setIsHovered] = useState(false);
     const [isTouched, setIsTouched] = useState(false);
@@ -439,8 +429,8 @@ function VideoCard({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onTouchStart={handleTouchStart}
-            onClick={video.isDrive ? undefined : onClick}
-            className="relative aspect-video rounded-xl overflow-hidden group transition-transform"
+            onClick={video.isDrive ? undefined : () => window.open(video.originalUrl || video.src, '_blank')}
+            className="relative aspect-video rounded-xl overflow-hidden group transition-transform cursor-pointer"
             style={{
                 background: 'rgba(15, 15, 15, 0.6)',
                 border: '1px solid rgba(255, 255, 255, 0.05)',
@@ -561,73 +551,6 @@ function VideoCard({
                 <div className="text-white font-semibold text-sm md:text-base">
                     {video.title}
                 </div>
-            </motion.div>
-        </motion.div>
-    );
-}
-
-function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
-    useEffect(() => {
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, []);
-
-    return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.95)' }}
-        >
-            <motion.div
-                initial={{ scale: 0.7, opacity: 0, rotateX: -15 }}
-                animate={{ scale: 1, opacity: 1, rotateX: 0 }}
-                exit={{ scale: 0.7, opacity: 0, rotateX: 15 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-5xl aspect-video rounded-xl md:rounded-2xl overflow-hidden"
-                style={{
-                    boxShadow: '0 0 80px rgba(196, 160, 82, 0.25)',
-                    border: '1px solid rgba(196, 160, 82, 0.2)',
-                }}
-            >
-                {video.isDrive && video.iframeSrc ? (
-                    <iframe
-                        src={video.iframeSrc}
-                        allow="autoplay"
-                        className="w-full h-full border-0 bg-black"
-                        allowFullScreen
-                    ></iframe>
-                ) : (
-                    <video
-                        controls
-                        autoPlay
-                        playsInline
-                        className="w-full h-full object-contain bg-black"
-                        src={video.src}
-                    >
-                        Your browser does not support the video tag.
-                    </video>
-                )}
-
-                <motion.button
-                    onClick={onClose}
-                    className="absolute top-2 right-2 md:top-4 md:right-4 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white z-10"
-                    style={{
-                        background: 'rgba(0, 0, 0, 0.6)',
-                        backdropFilter: 'blur(10px)',
-                    }}
-                    whileHover={{ scale: 1.1, background: 'rgba(196, 160, 82, 0.8)' }}
-                    whileTap={{ scale: 0.9 }}
-                >
-                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </motion.button>
             </motion.div>
         </motion.div>
     );
