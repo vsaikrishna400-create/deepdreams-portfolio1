@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
 interface Video {
     src: string;
@@ -103,7 +103,8 @@ function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; th
         } else {
             directLink += '?raw=1';
         }
-        return { src: directLink, isDrive: false, originalUrl: url };
+        const edgeProxyUrl = `/api/video/proxy?url=${encodeURIComponent(directLink)}`;
+        return { src: edgeProxyUrl, isDrive: false, originalUrl: url };
     }
 
     // Handle Google Drive — switch to official preview iframe to bypass all CORS/Restricted errors permanently
@@ -125,6 +126,7 @@ function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; th
 
 export default function VideoGallery() {
     const [videos, setVideos] = useState<Video[]>(defaultVideos);
+    const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
     const [filter, setFilter] = useState<string>('All');
     const [loading, setLoading] = useState(true);
     const sectionRef = useRef<HTMLElement>(null);
@@ -341,13 +343,16 @@ export default function VideoGallery() {
                     layout
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
                 >
-                    {filteredVideos.map((video, index) => (
-                        <VideoCard
-                            key={video.src}
-                            video={video}
-                            index={index}
-                        />
-                    ))}
+                    <AnimatePresence mode="popLayout">
+                        {filteredVideos.map((video, index) => (
+                            <VideoCard
+                                key={video.src}
+                                video={video}
+                                index={index}
+                                onClick={() => setSelectedVideo(video)}
+                            />
+                        ))}
+                    </AnimatePresence>
                 </motion.div>
 
                 {filteredVideos.length === 0 && !loading && (
@@ -367,11 +372,27 @@ export default function VideoGallery() {
                 )}
             </div>
 
+            <AnimatePresence>
+                {selectedVideo && (
+                    <VideoModal
+                        video={selectedVideo}
+                        onClose={() => setSelectedVideo(null)}
+                    />
+                )}
+            </AnimatePresence>
         </section>
     );
 }
 
-function VideoCard({ video, index }: { video: Video; index: number }) {
+function VideoCard({
+    video,
+    index,
+    onClick
+}: {
+    video: Video;
+    index: number;
+    onClick: () => void;
+}) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isHovered, setIsHovered] = useState(false);
     const [isTouched, setIsTouched] = useState(false);
@@ -420,7 +441,7 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onTouchStart={handleTouchStart}
-            onClick={video.isDrive ? undefined : () => window.open(video.originalUrl || video.src, '_blank')}
+            onClick={video.isDrive ? undefined : onClick}
             className="relative aspect-video rounded-xl overflow-hidden group transition-transform cursor-pointer"
             style={{
                 background: 'rgba(15, 15, 15, 0.6)',
@@ -540,6 +561,73 @@ function VideoCard({ video, index }: { video: Video; index: number }) {
                 <div className="text-white font-semibold text-sm md:text-base">
                     {video.title}
                 </div>
+            </motion.div>
+        </motion.div>
+    );
+}
+
+function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.95)' }}
+        >
+            <motion.div
+                initial={{ scale: 0.7, opacity: 0, rotateX: -15 }}
+                animate={{ scale: 1, opacity: 1, rotateX: 0 }}
+                exit={{ scale: 0.7, opacity: 0, rotateX: 15 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-5xl aspect-video rounded-xl md:rounded-2xl overflow-hidden"
+                style={{
+                    boxShadow: '0 0 80px rgba(196, 160, 82, 0.25)',
+                    border: '1px solid rgba(196, 160, 82, 0.2)',
+                }}
+            >
+                {video.isDrive && video.iframeSrc ? (
+                    <iframe
+                        src={video.iframeSrc}
+                        allow="autoplay"
+                        className="w-full h-full border-0 bg-black"
+                        allowFullScreen
+                    ></iframe>
+                ) : (
+                    <video
+                        controls
+                        autoPlay
+                        playsInline
+                        className="w-full h-full object-contain bg-black"
+                        src={video.src}
+                    >
+                        Your browser does not support the video tag.
+                    </video>
+                )}
+
+                <motion.button
+                    onClick={onClose}
+                    className="absolute top-2 right-2 md:top-4 md:right-4 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white z-10"
+                    style={{
+                        background: 'rgba(0, 0, 0, 0.6)',
+                        backdropFilter: 'blur(10px)',
+                    }}
+                    whileHover={{ scale: 1.1, background: 'rgba(196, 160, 82, 0.8)' }}
+                    whileTap={{ scale: 0.9 }}
+                >
+                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </motion.button>
             </motion.div>
         </motion.div>
     );
