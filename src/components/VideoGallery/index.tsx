@@ -4,124 +4,128 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
 interface Video {
-    src: string;
     title: string;
     category: string[];
-    isDrive: boolean;
-    thumbnail?: string;
-    iframeSrc?: string;
-    originalUrl?: string;
+    iframeSrc: string;
+    thumbnailUrl?: string;
+    provider: 'youtube' | 'drive' | 'dropbox' | 'other';
+}
+
+/**
+ * Extract YouTube video ID from various URL formats.
+ */
+function extractYouTubeId(url: string): string | null {
+    if (!url) return null;
+    // youtube.com/watch?v=ID, youtube.com/embed/ID, youtu.be/ID, youtube.com/shorts/ID
+    const patterns = [
+        /(?:youtube\.com\/watch\?.*v=)([a-zA-Z0-9_-]{11})/,
+        /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+        /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+        /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+    ];
+    for (const p of patterns) {
+        const m = url.match(p);
+        if (m) return m[1];
+    }
+    return null;
+}
+
+/**
+ * Extract Google Drive file ID from various URL formats.
+ */
+function extractDriveFileId(url: string): string | null {
+    if (!url || !url.includes('drive.google.com')) return null;
+    const matchD = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (matchD) return matchD[1];
+    const matchId = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (matchId) return matchId[1];
+    return null;
+}
+
+/**
+ * Process any video URL into a universal iframe embed.
+ * Supports: YouTube, Google Drive, Dropbox.
+ * ALL videos are rendered as iframes — no <video> tag needed.
+ */
+function processVideoUrl(url: string): { iframeSrc: string; thumbnailUrl?: string; provider: Video['provider'] } {
+    if (!url) return { iframeSrc: '', provider: 'other' };
+
+    // YouTube — the gold standard
+    const ytId = extractYouTubeId(url);
+    if (ytId) {
+        return {
+            iframeSrc: `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&showinfo=0`,
+            thumbnailUrl: `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`,
+            provider: 'youtube',
+        };
+    }
+
+    // Google Drive — use official preview iframe
+    const driveId = extractDriveFileId(url);
+    if (driveId) {
+        return {
+            iframeSrc: `https://drive.google.com/file/d/${driveId}/preview`,
+            thumbnailUrl: `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`,
+            provider: 'drive',
+        };
+    }
+
+    // Dropbox — convert share link to embeddable format
+    if (url.includes('dropbox.com')) {
+        // Replace dl=0 with raw=1 for direct file access
+        let embedUrl = url;
+        if (embedUrl.includes('?')) {
+            embedUrl = embedUrl.replace('dl=0', 'raw=1');
+            if (!embedUrl.includes('raw=1')) embedUrl += '&raw=1';
+        } else {
+            embedUrl += '?raw=1';
+        }
+        return {
+            iframeSrc: embedUrl,
+            provider: 'dropbox',
+        };
+    }
+
+    // Fallback — try as direct embed
+    return { iframeSrc: url, provider: 'other' };
 }
 
 // Fallback videos in case the sheet fetch fails or is empty
 const defaultVideos: Video[] = [
     {
-        src: '',
         title: 'Family Members AI',
         category: ['Family'],
-        isDrive: true,
-        thumbnail: 'https://drive.google.com/thumbnail?id=1xMZ84MmEY7zK-GhOQtv9PryWGVer0mW6&sz=w1000',
-        iframeSrc: 'https://drive.google.com/file/d/1xMZ84MmEY7zK-GhOQtv9PryWGVer0mW6/preview'
+        ...processVideoUrl('https://drive.google.com/file/d/1xMZ84MmEY7zK-GhOQtv9PryWGVer0mW6/view'),
     },
     {
-        src: '',
         title: 'Father and Grandmother',
         category: ['Father', 'Grandmother'],
-        isDrive: true,
-        thumbnail: 'https://drive.google.com/thumbnail?id=1ya_-WB3euB5TBGxbz-K5Sx_4cPUoNvJp&sz=w1000',
-        iframeSrc: 'https://drive.google.com/file/d/1ya_-WB3euB5TBGxbz-K5Sx_4cPUoNvJp/preview'
+        ...processVideoUrl('https://drive.google.com/file/d/1ya_-WB3euB5TBGxbz-K5Sx_4cPUoNvJp/view'),
     },
     {
-        src: '',
         title: 'Father AI Video',
         category: ['Father'],
-        isDrive: true,
-        thumbnail: 'https://drive.google.com/thumbnail?id=1qTarPa9No0wadIKOAWOr4mrsO_wWSOy6&sz=w1000',
-        iframeSrc: 'https://drive.google.com/file/d/1qTarPa9No0wadIKOAWOr4mrsO_wWSOy6/preview'
+        ...processVideoUrl('https://drive.google.com/file/d/1qTarPa9No0wadIKOAWOr4mrsO_wWSOy6/view'),
     },
     {
-        src: '',
         title: 'Grandfather AI Video',
         category: ['Grandfather'],
-        isDrive: true,
-        thumbnail: 'https://drive.google.com/thumbnail?id=1LiYnIN7BmnT87L6adrwZsiXhpoYTylFN&sz=w1000',
-        iframeSrc: 'https://drive.google.com/file/d/1LiYnIN7BmnT87L6adrwZsiXhpoYTylFN/preview'
+        ...processVideoUrl('https://drive.google.com/file/d/1LiYnIN7BmnT87L6adrwZsiXhpoYTylFN/view'),
     },
     {
-        src: '',
         title: 'Small Brother AI Video',
         category: ['Brother'],
-        isDrive: true,
-        thumbnail: 'https://drive.google.com/thumbnail?id=1ys2wXRXz3KUKIDDKv7OxuVXv1P3o31ao&sz=w1000',
-        iframeSrc: 'https://drive.google.com/file/d/1ys2wXRXz3KUKIDDKv7OxuVXv1P3o31ao/preview'
+        ...processVideoUrl('https://drive.google.com/file/d/1ys2wXRXz3KUKIDDKv7OxuVXv1P3o31ao/view'),
     },
     {
-        src: '',
         title: 'Trending Father AI',
         category: ['Father'],
-        isDrive: true,
-        thumbnail: 'https://drive.google.com/thumbnail?id=1By-9HttTtxD1STdo8CEQFD_yZisYwgo4&sz=w1000',
-        iframeSrc: 'https://drive.google.com/file/d/1By-9HttTtxD1STdo8CEQFD_yZisYwgo4/preview'
-    }
+        ...processVideoUrl('https://drive.google.com/file/d/1By-9HttTtxD1STdo8CEQFD_yZisYwgo4/view'),
+    },
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SPREADSHEET_ID = (process as any).env.NEXT_PUBLIC_SPREADSHEET_ID || '';
-
-/**
- * Extracts the Google Drive file ID from a share URL.
- */
-function extractDriveFileId(url: string): string | null {
-    if (!url || !url.includes('drive.google.com')) return null;
-    
-    // Match /d/ID format
-    const matchD = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (matchD) return matchD[1];
-
-    // Match ?id=ID or &id=ID format
-    const matchId = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if (matchId) return matchId[1];
-
-    return null;
-}
-
-/**
- * Processes video URLs for professional streaming.
- * Google Drive videos are routed through our server-side proxy
- * to bypass CORS restrictions and eliminate all Google branding.
- */
-function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; thumbnail?: string; iframeSrc?: string; originalUrl: string } {
-    if (!url) return { src: '', isDrive: false, originalUrl: '' };
-
-    // Handle Dropbox
-    if (url.includes('dropbox.com')) {
-        // Use raw=1 to enable direct streaming if possible, but keep originalUrl for fallback
-        let directLink = url;
-        if (directLink.includes('?')) {
-            directLink = directLink.replace('dl=0', 'raw=1');
-            if (!directLink.includes('raw=1')) directLink += '&raw=1';
-        } else {
-            directLink += '?raw=1';
-        }
-        return { src: directLink, isDrive: false, originalUrl: url };
-    }
-
-    // Handle Google Drive — switch to official preview iframe to bypass all CORS/Restricted errors permanently
-    if (url.includes('drive.google.com')) {
-        const fileId = extractDriveFileId(url);
-        if (fileId) {
-            return {
-                src: '', // We use thumbnail/iframe instead of raw src for Google Drive
-                isDrive: true,
-                thumbnail: `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`,
-                iframeSrc: `https://drive.google.com/file/d/${fileId}/preview`,
-                originalUrl: url
-            };
-        }
-    }
-
-    return { src: url, isDrive: false, originalUrl: url };
-}
 
 export default function VideoGallery() {
     const [videos, setVideos] = useState<Video[]>(defaultVideos);
@@ -144,13 +148,13 @@ export default function VideoGallery() {
                 // Force no-cache to ensure we get the latest sheet data every time
                 const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&t=${Date.now()}`;
                 const response = await fetch(url, { cache: 'no-store' });
-                
+
                 if (!response.ok) throw new Error('Failed to fetch spreadsheet');
-                
+
                 const csvText = await response.text();
-                
+
                 const allRows = csvText.split('\n').map(row => row.split(','));
-                const headerIndex = allRows.findIndex(row => 
+                const headerIndex = allRows.findIndex(row =>
                     row.some(cell => cell.trim().toLowerCase().includes('title'))
                 );
 
@@ -162,7 +166,7 @@ export default function VideoGallery() {
 
                 const headers = allRows[headerIndex].map(h => h.trim().toLowerCase());
                 const dataRows = allRows.slice(headerIndex + 1);
-                
+
                 // Helper to find index even if there are extra spaces in headers
                 const getColIndex = (name: string) => headers.findIndex(h => h.includes(name));
                 const titleIdx = getColIndex('title');
@@ -176,12 +180,12 @@ export default function VideoGallery() {
                         const rawSrc = (row[srcIdx] || '').trim().replace(/^["']|["']$/g, '') || '';
                         const rawCategory = (row[catIdx] || '').trim().replace(/^["']|["']$/g, '') || 'General';
 
-                        const { src, isDrive, thumbnail, iframeSrc } = getProcessedVideoLink(rawSrc);
+                        const { iframeSrc, thumbnailUrl, provider } = processVideoUrl(rawSrc);
                         const category = rawCategory.split(/[|]/).map(c => c.trim()).filter(c => c !== '');
 
-                        return { title, src, category, isDrive, thumbnail, iframeSrc };
+                        return { title, category, iframeSrc, thumbnailUrl, provider };
                     })
-                    .filter(video => video.src !== '' || video.iframeSrc !== undefined);
+                    .filter(video => video.iframeSrc !== '');
 
                 if (jsonData.length > 0) {
                     setVideos(jsonData);
@@ -345,7 +349,7 @@ export default function VideoGallery() {
                     <AnimatePresence mode="popLayout">
                         {filteredVideos.map((video, index) => (
                             <VideoCard
-                                key={video.src}
+                                key={video.iframeSrc}
                                 video={video}
                                 index={index}
                                 onClick={() => setSelectedVideo(video)}
@@ -392,39 +396,10 @@ function VideoCard({
     index: number;
     onClick: () => void;
 }) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [isHovered, setIsHovered] = useState(false);
-    const [isTouched, setIsTouched] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
 
-    const [isBuffering, setIsBuffering] = useState(false);
-
-    const handleMouseEnter = () => {
-        setIsHovered(true);
-        if (videoRef.current) {
-            videoRef.current.play().catch(() => { });
-        }
-    };
-
-    const handleMouseLeave = () => {
-        setIsHovered(false);
-        if (videoRef.current) {
-            videoRef.current.pause();
-            // Don't reset to 0 to make resumes faster and feel smoother
-        }
-    };
-
-    const handleTouchStart = () => {
-        if (!isTouched) {
-            setIsTouched(true);
-            setIsHovered(true);
-            if (videoRef.current) {
-                videoRef.current.play().catch(() => { });
-            }
-        }
-    };
-
-    const active = isHovered || isTouched;
+    // For YouTube, show a high-quality thumbnail; for others, show the iframe directly
+    const showThumbnail = video.provider === 'youtube' && video.thumbnailUrl;
 
     return (
         <motion.div
@@ -437,19 +412,17 @@ function VideoCard({
                 delay: index * 0.08,
                 layout: { duration: 0.3 }
             }}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onTouchStart={handleTouchStart}
-            onClick={video.isDrive ? undefined : onClick}
-            className="relative aspect-video rounded-xl overflow-hidden group transition-transform cursor-pointer"
+            onClick={onClick}
+            className="relative aspect-video rounded-xl overflow-hidden group cursor-pointer"
             style={{
                 background: 'rgba(15, 15, 15, 0.6)',
                 border: '1px solid rgba(255, 255, 255, 0.05)',
             }}
             whileHover={{ y: -5 }}
         >
-            {(!isLoaded && !video.isDrive) && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] z-10 p-4">
+            {/* Loading spinner */}
+            {!isLoaded && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] z-10">
                     <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -458,101 +431,56 @@ function VideoCard({
                 </div>
             )}
 
-            {video.isDrive && video.iframeSrc ? (
+            {/* YouTube thumbnail card — clean, fast, no iframe overhead */}
+            {showThumbnail ? (
+                <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={video.thumbnailUrl}
+                        alt={video.title}
+                        className="w-full h-full object-cover"
+                        onLoad={() => setIsLoaded(true)}
+                        onError={() => setIsLoaded(true)}
+                    />
+                    {/* Play button overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                        <motion.div
+                            className="w-14 h-14 md:w-18 md:h-18 rounded-full flex items-center justify-center"
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(196, 160, 82, 0.95) 0%, rgba(212, 184, 122, 0.95) 100%)',
+                                boxShadow: '0 0 40px rgba(196, 160, 82, 0.6)',
+                            }}
+                            whileHover={{ scale: 1.15 }}
+                            whileTap={{ scale: 0.9 }}
+                        >
+                            <svg className="w-6 h-6 md:w-8 md:h-8 text-[#0a0a0a] ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                        </motion.div>
+                    </div>
+                </>
+            ) : (
+                /* Drive / Dropbox — render iframe directly in card */
                 <iframe
                     src={video.iframeSrc}
-                    allow="autoplay"
-                    className="w-full h-full border-0 bg-black absolute inset-0 z-20"
+                    allow="autoplay; encrypted-media"
+                    className="w-full h-full border-0 bg-black pointer-events-none"
                     allowFullScreen
                     onLoad={() => setIsLoaded(true)}
                 ></iframe>
-            ) : (
-                <video
-                    key={video.src}
-                    ref={videoRef}
-                    src={video.src}
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    onLoadedData={() => {
-                        setIsLoaded(true);
-                    }}
-                    onWaiting={() => setIsBuffering(true)}
-                    onPlaying={() => setIsBuffering(false)}
-                    onError={(e) => {
-                        console.error('Video load error:', e);
-                    }}
-                    className="w-full h-full object-cover"
-                >
-                    Your browser does not support the video tag.
-                </video>
             )}
 
-            {!video.isDrive && (
-                <div
-                    className="absolute inset-0 md:opacity-0 opacity-100 transition-opacity duration-300 pointer-events-none"
-                    style={{
-                        background: 'linear-gradient(180deg, transparent 40%, rgba(10, 10, 10, 0.85) 100%)',
-                    }}
-                />
-            )}
-
-            {!video.isDrive && (
-                <motion.div
-                    className="absolute inset-0 hidden md:block pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: active ? 1 : 0 }}
-                    transition={{ duration: 0.3 }}
-                    style={{
-                        background: 'linear-gradient(180deg, rgba(10, 10, 10, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%)',
-                    }}
-                />
-            )}
-
-            {/* Play/Buffer overlay - only for non-drive videos */}
-            {!video.isDrive && (
-                <motion.div
-                    className="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{
-                        opacity: active ? 1 : 0.7,
-                        scale: active ? 1 : 0.8
-                    }}
-                    transition={{ duration: 0.3 }}
-                >
-                    {isBuffering && active ? (
-                        <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            className="w-12 h-12 md:w-16 md:h-16 rounded-full border-4 border-[#c4a052] border-t-transparent shadow-[0_0_30px_rgba(196,160,82,0.5)]"
-                        />
-                    ) : (
-                        <motion.div
-                            className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center"
-                        style={{
-                            background: 'linear-gradient(135deg, rgba(196, 160, 82, 0.95) 0%, rgba(212, 184, 122, 0.95) 100%)',
-                            boxShadow: '0 0 30px rgba(196, 160, 82, 0.5)',
-                        }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                    >
-                        <svg className="w-5 h-5 md:w-7 md:h-7 text-[#0a0a0a] ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                        </svg>
-                    </motion.div>
-                    )}
-                </motion.div>
-            )}
+            {/* Gradient overlay */}
+            <div
+                className="absolute inset-0 pointer-events-none z-20"
+                style={{
+                    background: 'linear-gradient(180deg, transparent 50%, rgba(10, 10, 10, 0.85) 100%)',
+                }}
+            />
 
             {/* Title & category label */}
             <motion.div
                 className="absolute bottom-0 left-0 right-0 p-3 md:p-4 z-30 pointer-events-none"
-                initial={false}
-                animate={{
-                    y: active ? 0 : 0,
-                    opacity: 1
-                }}
             >
                 <div className="text-xs md:text-sm text-[#c4a052] mb-0.5 md:mb-1 font-medium">
                     {Array.isArray(video.category) ? video.category.join(' & ') : video.category}
@@ -572,6 +500,11 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
             document.body.style.overflow = '';
         };
     }, []);
+
+    // For YouTube, use the embed URL with autoplay
+    const modalIframeSrc = video.provider === 'youtube'
+        ? `${video.iframeSrc}&autoplay=1`
+        : video.iframeSrc;
 
     return (
         <motion.div
@@ -594,24 +527,12 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
                     border: '1px solid rgba(196, 160, 82, 0.2)',
                 }}
             >
-                {video.isDrive && video.iframeSrc ? (
-                    <iframe
-                        src={video.iframeSrc}
-                        allow="autoplay"
-                        className="w-full h-full border-0 bg-black"
-                        allowFullScreen
-                    ></iframe>
-                ) : (
-                    <video
-                        controls
-                        autoPlay
-                        playsInline
-                        className="w-full h-full object-contain bg-black"
-                        src={video.src}
-                    >
-                        Your browser does not support the video tag.
-                    </video>
-                )}
+                <iframe
+                    src={modalIframeSrc}
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                    className="w-full h-full border-0 bg-black"
+                    allowFullScreen
+                ></iframe>
 
                 <motion.button
                     onClick={onClose}
