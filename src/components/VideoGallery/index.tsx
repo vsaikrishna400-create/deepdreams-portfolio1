@@ -93,7 +93,14 @@ function getProcessedVideoLink(url: string): { src: string; isDrive: boolean; th
 
     // Handle Dropbox
     if (url.includes('dropbox.com')) {
-        const directLink = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '').replace('&dl=0', '');
+        // Use raw=1 to enable direct streaming with proper Range Request support, bypassing expiration limits
+        let directLink = url;
+        if (directLink.includes('?')) {
+            directLink = directLink.replace('dl=0', 'raw=1');
+            if (!directLink.includes('raw=1')) directLink += '&raw=1';
+        } else {
+            directLink += '?raw=1';
+        }
         return { src: directLink, isDrive: false };
     }
 
