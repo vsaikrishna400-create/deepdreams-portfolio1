@@ -66,7 +66,9 @@ function processVideoUrl(url: string): Omit<Video, 'title' | 'category'> {
     // Handle Local Videos (e.g., if the user puts "father.mp4" in the sheet)
     if (!url.startsWith('http') && (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mov'))) {
         const localPath = url.startsWith('/') ? url : `/videos/${url}`;
-        return { videoSrc: localPath, originalUrl: localPath, provider: 'other' };
+        // Encode URI to handle spaces and special characters
+        const encodedPath = encodeURI(localPath);
+        return { videoSrc: encodedPath, originalUrl: url, provider: 'other' };
     }
 
     return { videoSrc: url, originalUrl: url, provider: 'other' };
