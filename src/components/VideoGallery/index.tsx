@@ -238,22 +238,12 @@ export default function VideoGallery() {
 
 function VideoCard({ video, index, onClick }: { video: Video; index: number; onClick: () => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const [isHovered, setIsHovered] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-    }, []);
 
     const handleMouseEnter = () => {
-        if (isMobile) return; // Save bandwidth on mobile
-        setIsHovered(true);
         videoRef.current?.play().catch(() => {});
     };
 
     const handleMouseLeave = () => {
-        if (isMobile) return;
-        setIsHovered(false);
         videoRef.current?.pause();
         if (videoRef.current) videoRef.current.currentTime = 0;
     };
@@ -272,29 +262,27 @@ function VideoCard({ video, index, onClick }: { video: Video; index: number; onC
         >
             {/* Background Thumbnail or Video Preview */}
             <div className="absolute inset-0 w-full h-full">
-                {/* Always show thumbnail first. Video preview only on desktop hover. */}
+                {/* Always show thumbnail first. */}
                 {video.thumbnail ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img 
                         src={video.thumbnail} 
                         alt={video.title} 
-                        className={`w-full h-full object-cover transition-all duration-700 ${isHovered && !isMobile ? 'opacity-0 scale-110' : 'opacity-100 scale-100'}`}
+                        className="w-full h-full object-cover transition-all duration-700 group-hover:opacity-0 group-hover:scale-110"
                     />
                 ) : (
                     <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]" />
                 )}
 
-                {/* Video preview - Only loads on desktop hover to save bandwidth */}
-                {!isMobile && isHovered && (
-                    <video
-                        ref={videoRef}
-                        src={video.src}
-                        muted
-                        loop
-                        playsInline
-                        className="absolute inset-0 w-full h-full object-cover"
-                    />
-                )}
+                {/* Video preview - Only displays on desktop (md and up) to save mobile bandwidth */}
+                <video
+                    ref={videoRef}
+                    src={video.src}
+                    muted
+                    loop
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover hidden md:block opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                />
             </div>
 
             {/* Premium Overlay */}
