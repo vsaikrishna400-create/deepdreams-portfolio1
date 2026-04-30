@@ -168,17 +168,41 @@ export default function VideoGallery() {
                     </p>
                 </motion.div>
 
-                {/* Filter Tabs */}
-                <div className="relative mb-12">
-                    <div ref={scrollContainerRef} className="flex md:justify-center gap-4 overflow-x-auto pb-4 scrollbar-hide px-4">
+                {/* Filter Tabs - Mobile Optimized Slider */}
+                <div className="relative mb-12 group">
+                    {/* Left Fade Gradient */}
+                    <div 
+                        className={`absolute left-0 top-0 bottom-0 w-16 z-20 pointer-events-none transition-opacity duration-300 ${
+                            canScrollLeft ? 'opacity-100' : 'opacity-0'
+                        }`}
+                        style={{ background: 'linear-gradient(to right, #0a0a0a 0%, transparent 100%)' }}
+                    />
+                    
+                    {/* Right Fade Gradient */}
+                    <div 
+                        className={`absolute right-0 top-0 bottom-0 w-16 z-20 pointer-events-none transition-opacity duration-300 ${
+                            canScrollRight ? 'opacity-100' : 'opacity-0'
+                        }`}
+                        style={{ background: 'linear-gradient(to left, #0a0a0a 0%, transparent 100%)' }}
+                    />
+
+                    <div 
+                        ref={scrollContainerRef} 
+                        className="flex md:justify-center gap-3 overflow-x-auto pb-4 scrollbar-hide px-4 snap-x snap-mandatory scroll-smooth"
+                        style={{
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                            WebkitOverflowScrolling: 'touch',
+                        }}
+                    >
                         {categories.map((cat) => (
                             <button
                                 key={cat}
                                 onClick={() => setFilter(cat)}
-                                className={`px-6 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                                className={`px-6 py-2.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap snap-start ${
                                     filter === cat
-                                        ? 'bg-[#c4a052] text-[#0a0a0a] shadow-[0_0_20px_rgba(196,160,82,0.3)]'
-                                        : 'bg-white/5 text-[#a0a0a0] hover:text-white border border-white/10'
+                                        ? 'bg-[#c4a052] text-[#0a0a0a] shadow-[0_0_20px_rgba(196,160,82,0.4)] scale-105'
+                                        : 'bg-white/5 text-[#a0a0a0] hover:text-white border border-white/10 hover:bg-white/10'
                                 }`}
                             >
                                 {cat}
