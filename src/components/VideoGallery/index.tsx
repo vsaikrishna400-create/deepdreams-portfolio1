@@ -239,6 +239,24 @@ export default function VideoGallery() {
 function VideoCard({ video, index, onClick }: { video: Video; index: number; onClick: () => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isHovered, setIsHovered] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    }, []);
+
+    const handleMouseEnter = () => {
+        if (isMobile) return; // Save bandwidth on mobile
+        setIsHovered(true);
+        videoRef.current?.play().catch(() => {});
+    };
+
+    const handleMouseLeave = () => {
+        if (isMobile) return;
+        setIsHovered(false);
+        videoRef.current?.pause();
+        if (videoRef.current) videoRef.current.currentTime = 0;
+    };
 
     return (
         <motion.div
@@ -247,41 +265,40 @@ function VideoCard({ video, index, onClick }: { video: Video; index: number; onC
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
-            onMouseEnter={() => {
-                setIsHovered(true);
-                videoRef.current?.play().catch(() => {});
-            }}
-            onMouseLeave={() => {
-                setIsHovered(false);
-                videoRef.current?.pause();
-                if (videoRef.current) videoRef.current.currentTime = 0;
-            }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             onClick={onClick}
             className="group relative aspect-video rounded-2xl overflow-hidden cursor-pointer bg-[#0a0a0a] border border-white/5"
         >
             {/* Background Thumbnail or Video Preview */}
             <div className="absolute inset-0 w-full h-full">
-                {video.thumbnail && !isHovered ? (
+                {/* Always show thumbnail first. Video preview only on desktop hover. */}
+                {video.thumbnail ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img 
                         src={video.thumbnail} 
                         alt={video.title} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        className={`w-full h-full object-cover transition-all duration-700 ${isHovered && !isMobile ? 'opacity-0 scale-110' : 'opacity-100 scale-100'}`}
                     />
                 ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]" />
+                )}
+
+                {/* Video preview - Only loads on desktop hover to save bandwidth */}
+                {!isMobile && isHovered && (
                     <video
                         ref={videoRef}
                         src={video.src}
                         muted
                         loop
                         playsInline
-                        className="w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover"
                     />
                 )}
             </div>
 
             {/* Premium Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
 
             {/* Play Button Icon */}
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-110">
@@ -301,7 +318,7 @@ function VideoCard({ video, index, onClick }: { video: Video; index: number; onC
                         </span>
                     ))}
                 </div>
-                <h3 className="text-lg font-bold text-white group-hover:text-[#c4a052] transition-colors">
+                <h3 className="text-lg font-bold text-white group-hover:text-[#c4a052] transition-colors line-clamp-1">
                     {video.title}
                 </h3>
             </div>
