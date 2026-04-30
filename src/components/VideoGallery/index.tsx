@@ -64,8 +64,15 @@ export default function VideoGallery() {
                         const rawCategory = (row[catIdx] || '').trim().replace(/^["']|["']$/g, '') || 'General';
                         const thumbnail = (row[thumbIdx] || '').trim().replace(/^["']|["']$/g, '') || '';
 
-                        // Simple, robust conversion for the common mistake of using Drive/Dropbox links
-                        // This still tries to help, but is designed for DIRECT links.
+                        // Smart Link Fixer
+                        src = src.trim();
+                        
+                        // Fix common Cloudinary console URL mistake
+                        if (src.includes('cloudinary.com/console')) {
+                            // Try to extract the public ID if possible, otherwise it will show an error on the frontend
+                            console.warn("Detected Cloudinary Console URL. Please use the Direct Delivery URL instead.");
+                        }
+
                         if (src.includes('dropbox.com')) {
                             src = src.replace('dl=0', 'raw=1');
                             if (!src.includes('raw=1')) src += (src.includes('?') ? '&' : '?') + 'raw=1';
@@ -315,6 +322,9 @@ function VideoCard({ video, index, onClick }: { video: Video; index: number; onC
 }
 
 function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
+    const [videoError, setVideoError] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
     useEffect(() => {
         document.body.style.overflow = 'hidden';
         return () => { document.body.style.overflow = ''; };
@@ -333,18 +343,48 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-6xl aspect-video rounded-3xl overflow-hidden bg-black shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/10"
+                className="relative w-full max-w-6xl aspect-video rounded-3xl overflow-hidden bg-[#0a0a0a] shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/10 flex items-center justify-center"
             >
-                <video
-                    src={video.src}
-                    controls
-                    autoPlay
-                    className="w-full h-full object-contain"
-                />
+                {isLoading && !videoError && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-[#0a0a0a]">
+                        <motion.div 
+                            animate={{ rotate: 360 }} 
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            className="w-12 h-12 border-2 border-[#c4a052] border-t-transparent rounded-full"
+                        />
+                    </div>
+                )}
+
+                {videoError ? (
+                    <div className="text-center p-8">
+                        <div className="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">Video Link Error</h3>
+                        <p className="text-[#808080] max-w-md mx-auto mb-6">
+                            This link is not a direct video file. Please ensure your Cloudinary link ends in <span className="text-[#c4a052]">.mp4</span> and is not a console/preview page.
+                        </p>
+                        <button onClick={() => window.open(video.src, '_blank')} className="px-6 py-2 bg-white/5 hover:bg-white/10 text-white rounded-full transition-all text-sm border border-white/10">
+                            Check Original Link
+                        </button>
+                    </div>
+                ) : (
+                    <video
+                        src={video.src}
+                        controls
+                        autoPlay
+                        onLoadedData={() => setIsLoading(false)}
+                        onError={() => {
+                            setVideoError(true);
+                            setIsLoading(false);
+                        }}
+                        className="w-full h-full object-contain"
+                    />
+                )}
                 
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 w-12 h-12 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white hover:bg-[#c4a052] hover:text-[#0a0a0a] transition-all"
+                    className="absolute top-6 right-6 w-12 h-12 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white hover:bg-[#c4a052] hover:text-[#0a0a0a] transition-all z-20"
                 >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -357,14 +397,6 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
                 <div className="flex justify-center gap-4 text-[#c4a052] text-sm">
                     {video.category.map(cat => <span key={cat}>#{cat}</span>)}
                 </div>
-                <a 
-                    href={video.src} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-block mt-6 px-8 py-3 rounded-full border border-white/20 text-[#808080] hover:text-white hover:border-white transition-all text-sm"
-                >
-                    Problem playing? Open direct link
-                </a>
             </div>
         </motion.div>
     );
