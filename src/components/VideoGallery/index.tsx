@@ -168,27 +168,19 @@ export default function VideoGallery() {
                     </p>
                 </motion.div>
 
-                {/* Filter Tabs - Mobile Optimized Slider */}
-                <div className="relative mb-12 group">
-                    {/* Left Fade Gradient */}
+                {/* Filter Tabs - Enterprise Mobile Slider */}
+                <div className="relative mb-12 overflow-hidden">
+                    {/* Professional Gradient Mask for Edge Fading */}
                     <div 
-                        className={`absolute left-0 top-0 bottom-0 w-16 z-20 pointer-events-none transition-opacity duration-300 ${
-                            canScrollLeft ? 'opacity-100' : 'opacity-0'
-                        }`}
-                        style={{ background: 'linear-gradient(to right, #0a0a0a 0%, transparent 100%)' }}
-                    />
-                    
-                    {/* Right Fade Gradient */}
-                    <div 
-                        className={`absolute right-0 top-0 bottom-0 w-16 z-20 pointer-events-none transition-opacity duration-300 ${
-                            canScrollRight ? 'opacity-100' : 'opacity-0'
-                        }`}
-                        style={{ background: 'linear-gradient(to left, #0a0a0a 0%, transparent 100%)' }}
+                        className="absolute inset-0 z-10 pointer-events-none hidden md:block"
+                        style={{
+                            background: 'linear-gradient(90deg, #0a0a0a 0%, transparent 5%, transparent 95%, #0a0a0a 100%)'
+                        }}
                     />
 
                     <div 
                         ref={scrollContainerRef} 
-                        className="flex md:justify-center gap-3 overflow-x-auto pb-4 scrollbar-hide px-4 snap-x snap-mandatory scroll-smooth"
+                        className="flex items-center gap-3 overflow-x-auto pb-4 px-4 md:px-0 md:justify-center -mx-4 md:mx-0 no-scrollbar snap-x snap-proximity"
                         style={{
                             scrollbarWidth: 'none',
                             msOverflowStyle: 'none',
@@ -199,9 +191,9 @@ export default function VideoGallery() {
                             <button
                                 key={cat}
                                 onClick={() => setFilter(cat)}
-                                className={`px-6 py-2.5 rounded-full text-xs md:text-sm font-medium transition-all whitespace-nowrap snap-start ${
+                                className={`flex-shrink-0 px-6 py-2.5 rounded-full text-xs md:text-sm font-medium transition-all snap-start ${
                                     filter === cat
-                                        ? 'bg-[#c4a052] text-[#0a0a0a] shadow-[0_0_20px_rgba(196,160,82,0.4)] scale-105'
+                                        ? 'bg-[#c4a052] text-[#0a0a0a] shadow-[0_0_20px_rgba(196,160,82,0.4)]'
                                         : 'bg-white/5 text-[#a0a0a0] hover:text-white border border-white/10 hover:bg-white/10'
                                 }`}
                             >
