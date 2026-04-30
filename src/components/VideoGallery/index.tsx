@@ -32,8 +32,10 @@ function processVideoUrl(url: string): Omit<Video, 'title' | 'category'> {
 
     const ytId = extractYouTubeId(url);
     if (ytId) {
+        // Added origin and enablejsapi to fix Error 153 and embedding restrictions
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
         return {
-            iframeSrc: `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&autoplay=1`,
+            iframeSrc: `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&autoplay=1&enablejsapi=1&origin=${encodeURIComponent(origin)}`,
             thumbnailUrl: `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`,
             originalUrl: url,
             provider: 'youtube',
