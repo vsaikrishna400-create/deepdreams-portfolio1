@@ -113,8 +113,16 @@ export default function VideoGallery() {
             }
 
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+
                 const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv`;
-                const response = await fetch(url, { cache: 'no-store' });
+                const response = await fetch(url, { 
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
                 if (!response.ok) throw new Error('Failed to fetch spreadsheet');
                 
                 const csvText = await response.text();
@@ -164,7 +172,7 @@ export default function VideoGallery() {
 
     const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
-    const desiredOrder = ['All', 'Latest', 'Father', 'Mother', 'Grandfather', 'Grandmother', 'Brother', 'Sister'];
+    const desiredOrder = ['All', 'Latest', 'Family', 'Father', 'Mother', 'Grandfather', 'Grandmother', 'Brother', 'Sister'];
     const categories = Array.from(new Set(['All', ...videos.flatMap(v => v.category)]))
         .sort((a, b) => {
             const indexA = desiredOrder.indexOf(a);
@@ -182,7 +190,12 @@ export default function VideoGallery() {
     return (
         <section id="portfolio" ref={sectionRef} className="relative py-20 md:py-32 px-4 md:px-6 overflow-hidden">
             <motion.div className="absolute right-0 top-1/2 w-96 h-96 rounded-full -z-10"
-                style={{ y, background: 'radial-gradient(circle, rgba(196, 160, 82, 0.08) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+                style={{ 
+                    y, 
+                    background: 'radial-gradient(circle, rgba(196, 160, 82, 0.12) 0%, rgba(196, 160, 82, 0.05) 40%, transparent 70%)',
+                    willChange: 'transform',
+                    transform: 'translate3d(0,0,0)'
+                }} />
 
             <div className="max-w-6xl mx-auto">
                 <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="text-center mb-16">
@@ -212,20 +225,22 @@ export default function VideoGallery() {
 
                 {/* Video Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence>
                         {filteredVideos.map((video, index) => (
-                            <motion.div key={video.originalUrl + index} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ duration: 0.4, delay: index * 0.05 }} onClick={() => setSelectedVideo(video)}
-                                className="group relative aspect-video rounded-2xl overflow-hidden cursor-pointer bg-[#0a0a0a] border border-white/5 shadow-2xl">
+                            <motion.div key={video.originalUrl + index} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                                transition={{ duration: 0.3, delay: index * 0.03 }} onClick={() => setSelectedVideo(video)}
+                                className="group relative aspect-video rounded-2xl overflow-hidden cursor-pointer bg-[#0a0a0a] border border-white/5 shadow-2xl"
+                                style={{ willChange: 'transform, opacity' }}
+                            >
                                 
-                                {/* Visual Content - Flattened to avoid component failure */}
+                                {/* Visual Content - Optimized */}
                                 <div className="absolute inset-0 w-full h-full bg-black">
                                     {video.videoSrc ? (
                                         <video 
                                             src={`${video.videoSrc}#t=0.5`} 
-                                            poster={video.thumbnailUrl || video.videoSrc}
+                                            poster={video.thumbnailUrl || undefined}
                                             className="w-full h-full object-cover"
-                                            muted playsInline preload="metadata"
+                                            muted playsInline preload="none"
                                         />
                                     ) : video.thumbnailUrl ? (
                                         <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover" />
@@ -281,7 +296,7 @@ function VideoModal({ video, onClose }: { video: Video; onClose: () => void }) {
                 {isIframe ? (
                     <iframe src={video.iframeSrc} className="w-full h-full border-0" allow="autoplay; encrypted-media; fullscreen" allowFullScreen />
                 ) : (
-                    <video src={video.videoSrc} poster={video.videoSrc} controls autoPlay preload="auto" className="w-full h-full object-contain bg-black" />
+                    <video src={video.videoSrc} poster={video.thumbnailUrl || undefined} controls autoPlay preload="auto" className="w-full h-full object-contain bg-black" />
                 )}
             </motion.div>
         </motion.div>

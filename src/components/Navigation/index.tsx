@@ -16,6 +16,21 @@ export default function Navigation() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { scrollY } = useScroll();
 
+    const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+        e.preventDefault();
+        setMobileMenuOpen(false);
+        const targetId = href.replace('#', '');
+        const elem = document.getElementById(targetId);
+        if (elem) {
+            window.scrollTo({
+                top: elem.offsetTop - 80, // Offset for fixed header
+                behavior: 'smooth'
+            });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
     useMotionValueEvent(scrollY, "change", (latest) => {
         setIsScrolled(latest > 50);
     });
@@ -44,7 +59,7 @@ export default function Navigation() {
             <motion.nav
                 initial={{ y: -100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 className="fixed top-0 left-0 right-0 z-50 px-3 md:px-6 py-3 md:py-4"
             >
                 <motion.div
@@ -61,7 +76,7 @@ export default function Navigation() {
                         href="#"
                         className="flex items-center gap-2 md:gap-3"
                         whileHover={{ scale: 1.02 }}
-                        onClick={() => setMobileMenuOpen(false)}
+                        onClick={(e) => scrollToSection(e, '#')}
                     >
                         <div className="relative w-10 h-10 md:w-14 md:h-14 shrink-0">
                             <Image
@@ -95,8 +110,9 @@ export default function Navigation() {
                                 className="relative px-4 py-2 text-sm text-[#a0a0a0] hover:text-white transition-colors"
                                 initial={{ opacity: 0, y: -20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.6 + i * 0.1 }}
+                                transition={{ delay: i * 0.05 }}
                                 whileHover={{ scale: 1.05 }}
+                                onClick={(e) => scrollToSection(e, link.href)}
                             >
                                 {link.label}
                                 <motion.div
@@ -116,7 +132,7 @@ export default function Navigation() {
                             className="ml-4 px-5 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-[#c4a052] to-[#d4b87a] text-[#0a0a0a]"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 1 }}
+                            transition={{ delay: 0.2 }}
                             whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(196, 160, 82, 0.4)' }}
                             whileTap={{ scale: 0.95 }}
                         >
@@ -184,7 +200,7 @@ export default function Navigation() {
                                 <motion.a
                                     key={link.href}
                                     href={link.href}
-                                    onClick={() => setMobileMenuOpen(false)}
+                                    onClick={(e) => scrollToSection(e, link.href)}
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: 20 }}

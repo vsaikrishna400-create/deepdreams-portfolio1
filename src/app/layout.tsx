@@ -57,6 +57,9 @@ export const metadata: Metadata = {
     },
 };
 
+import CustomCursor from "@/components/CustomCursor";
+import SmoothScroll from "@/components/SmoothScroll";
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -64,7 +67,9 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" className="dark" suppressHydrationWarning>
-            <body className={`${inter.variable} ${playfair.variable} ${cinzel.variable} ${italiana.variable} antialiased bg-[#0a0a0a] text-white`}>
+            <body className={`${inter.variable} ${playfair.variable} ${cinzel.variable} ${italiana.variable} antialiased bg-[#050505] text-white`}>
+                <CustomCursor />
+                <SmoothScroll />
                 {children}
             </body>
         </html>

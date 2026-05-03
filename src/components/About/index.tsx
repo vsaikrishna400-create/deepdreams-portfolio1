@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Text3D from '@/components/Text3D';
 
 export default function About() {
     return (
@@ -30,19 +31,32 @@ export default function About() {
                                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                             />
 
-                            {/* Ambient background glow */}
+                            {/* Ambient background glow - Optimized (No Filters) */}
                             <div
                                 className="absolute -inset-12 md:-inset-20 rounded-3xl -z-10"
                                 style={{
-                                    background: 'radial-gradient(ellipse at center, rgba(196, 160, 82, 0.1) 0%, rgba(0, 212, 255, 0.05) 40%, transparent 70%)',
-                                    filter: 'blur(50px)',
+                                    background: 'radial-gradient(ellipse at center, rgba(196, 160, 82, 0.15) 0%, rgba(0, 212, 255, 0.08) 30%, transparent 70%)',
+                                    willChange: 'transform',
+                                    transform: 'translate3d(0,0,0)',
                                 }}
                             />
 
-                            {/* Profile image container - taller aspect ratio to show full head and shoulders */}
-                            <div
-                                className="relative w-56 sm:w-64 md:w-80 rounded-2xl overflow-hidden"
-                                style={{ aspectRatio: '3/4' }}
+                            {/* Profile image container - taller aspect ratio with 3D effect */}
+                            <motion.div
+                                className="relative w-56 sm:w-64 md:w-80 rounded-2xl overflow-hidden cursor-pointer"
+                                style={{ 
+                                    aspectRatio: '3/4',
+                                    perspective: '1000px',
+                                    transformStyle: 'preserve-3d',
+                                    position: 'relative',
+                                    willChange: 'transform'
+                                }}
+                                whileHover={{ 
+                                    rotateY: 10, 
+                                    rotateX: -5,
+                                    scale: 1.02
+                                }}
+                                transition={{ type: "spring", stiffness: 200, damping: 20 }}
                             >
                                 {/* Inner glow ring */}
                                 <div
@@ -71,7 +85,7 @@ export default function About() {
                                         background: 'linear-gradient(to top, rgba(10, 10, 10, 0.9) 0%, transparent 100%)',
                                     }}
                                 />
-                            </div>
+                            </motion.div>
 
                             {/* Floating accent particles */}
                             <motion.div
@@ -102,17 +116,11 @@ export default function About() {
                         transition={{ duration: 0.8, delay: 0.2 }}
                         viewport={{ once: true }}
                     >
-                        <motion.h2
-                            className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-center md:text-left"
-                            style={{
-                                background: 'linear-gradient(135deg, #c4a052 0%, #d4b87a 50%, #c4a052 100%)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                backgroundClip: 'text',
-                            }}
-                        >
-                            About the Studio
-                        </motion.h2>
+                        <Text3D
+                            text="About the Studio"
+                            className="text-2xl sm:text-3xl md:text-5xl font-bold mb-4 md:mb-6 justify-center md:justify-start"
+                            color="#c4a052"
+                        />
 
                         <p className="text-[#b0b0b0] text-base md:text-lg mb-4 md:mb-6 leading-relaxed text-center md:text-left">
                             Welcome to <span className="text-white font-semibold">DeepDreams AI Studio</span>,

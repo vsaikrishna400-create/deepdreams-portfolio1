@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, Variants, useMotionValue, useTransform } from 'framer-motion';
+import Text3D from '@/components/Text3D';
 
 // Professional, abstract service representations with SVG icons
 const services = [
@@ -192,17 +193,11 @@ export default function Services() {
                     viewport={{ once: true }}
                     className="text-center mb-12 md:mb-20"
                 >
-                    <motion.h2
-                        className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 md:mb-5"
-                        style={{
-                            background: 'linear-gradient(135deg, #c4a052 0%, #d4b87a 50%, #c4a052 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                        }}
-                    >
-                        Our Services
-                    </motion.h2>
+                    <Text3D
+                        text="Our Services"
+                        className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 md:mb-5 justify-center"
+                        color="#c4a052"
+                    />
                     <p className="text-[#808080] text-sm md:text-lg max-w-2xl mx-auto px-2">
                         Cutting-edge solutions powered by artificial intelligence
                     </p>
@@ -228,8 +223,8 @@ export default function Services() {
 function TiltCard({ service }: { service: typeof services[0] }) {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
-    const rotateX = useTransform(y, [-100, 100], [5, -5]);
-    const rotateY = useTransform(x, [-100, 100], [-5, 5]);
+    const rotateX = useTransform(y, [-100, 100], [20, -20]);
+    const rotateY = useTransform(x, [-100, 100], [-20, 20]);
 
     // Motion values for the glow effect
     const mouseXPos = useMotionValue(0);
@@ -273,6 +268,8 @@ function TiltCard({ service }: { service: typeof services[0] }) {
                     rotateX,
                     rotateY,
                     transformStyle: "preserve-3d",
+                    perspective: 1000,
+                    willChange: 'transform'
                 }}
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -289,7 +286,7 @@ function TiltCard({ service }: { service: typeof services[0] }) {
                     }}
                 />
 
-                <div className="flex flex-col sm:flex-row p-5 md:p-8 gap-4 md:gap-6 relative z-10" style={{ transform: "translateZ(20px)" }}>
+                <div className="flex flex-col sm:flex-row p-5 md:p-8 gap-4 md:gap-6 relative z-10" style={{ transform: "translateZ(60px)", transformStyle: "preserve-3d" }}>
                     {/* Icon Container with Floating Effect */}
                     <div className="flex-shrink-0">
                         <motion.div
@@ -298,6 +295,7 @@ function TiltCard({ service }: { service: typeof services[0] }) {
                                 background: `linear-gradient(135deg, ${service.color}15 0%, ${service.color}05 100%)`,
                                 border: `1px solid ${service.color}30`,
                                 boxShadow: `0 0 20px ${service.color}10`,
+                                transform: "translateZ(40px)"
                             }}
                             animate={{ y: [0, -5, 0] }}
                             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}

@@ -40,7 +40,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* Scroll behavior handled by application orchestration for stability */
 }
 
 body {
@@ -194,49 +194,38 @@ a {
   opacity: 1;
 }
 
-/* ===== Scrollbar Hide Utility ===== */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* ===== Premium Aesthetic Refinements ===== */
+::selection {
+  background: var(--gold);
+  color: var(--background);
 }
 
-/* ===== Mobile Touch Improvements ===== */
-@media (max-width: 768px) {
-  /* Prevent horizontal overflow on mobile */
-  html, body {
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  /* Larger tap targets for interactive elements */
-  button, a {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Smooth momentum scrolling for overflow containers */
-  .overflow-x-auto {
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-  }
-  
-  /* Prevent text size adjustment on orientation change */
-  html {
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
+/* Custom Scrollbar for Smooth Experience */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* ===== Safe Area Padding for Notched Phones ===== */
-@supports (padding: env(safe-area-inset-bottom)) {
-  footer {
-    padding-bottom: calc(2rem + env(safe-area-inset-bottom));
-  }
-  
-  .fixed.bottom-0 {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold-dark);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
+/* Ensure smooth section transitions */
+.section-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.section-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
 }

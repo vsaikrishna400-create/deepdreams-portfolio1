@@ -86,13 +86,14 @@ export default function Contact() {
 
     return (
         <section id="contact" ref={sectionRef} className="relative py-20 md:py-32 px-4 md:px-6 overflow-hidden">
-            {/* Animated background accent */}
+            {/* Animated background accent - Optimized (No Filters) */}
             <motion.div
                 className="absolute left-0 top-1/3 w-80 h-80 rounded-full -z-10"
                 style={{
                     y,
-                    background: 'radial-gradient(circle, rgba(196, 160, 82, 0.1) 0%, transparent 70%)',
-                    filter: 'blur(60px)',
+                    background: 'radial-gradient(circle, rgba(196, 160, 82, 0.15) 0%, rgba(196, 160, 82, 0.05) 40%, transparent 70%)',
+                    willChange: 'transform',
+                    transform: 'translate3d(0,0,0)',
                 }}
             />
 
