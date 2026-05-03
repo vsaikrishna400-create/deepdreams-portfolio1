@@ -85,11 +85,19 @@ function processVideoUrl(url: string): Omit<Video, 'title' | 'category'> {
     if (url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm') || url.toLowerCase().endsWith('.mov')) {
         const isLocal = !url.startsWith('http');
         let videoSrc = url;
+        let thumbnailUrl;
+        
         if (isLocal) {
             videoSrc = encodeURI(url.startsWith('/') ? url : `/videos/${url}`);
+            // Extract filename and point to the thumbnails directory
+            const fileName = url.split('/').pop() || url;
+            const baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+            thumbnailUrl = encodeURI(`/videos/thumbnails/${baseName}.png`);
         }
+        
         return { 
             videoSrc: videoSrc, 
+            thumbnailUrl: thumbnailUrl,
             originalUrl: url, 
             provider: 'other' 
         };
@@ -99,7 +107,10 @@ function processVideoUrl(url: string): Omit<Video, 'title' | 'category'> {
 }
 
 export default function VideoGallery() {
-    const [videos, setVideos] = useState<Video[]>(INITIAL_VIDEOS);
+    const [videos, setVideos] = useState<Video[]>(INITIAL_VIDEOS.map(v => ({
+        ...v,
+        ...processVideoUrl(v.originalUrl)
+    })));
     const [filter, setFilter] = useState('All');
     const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
     const [loading, setLoading] = useState(true);
@@ -237,10 +248,10 @@ export default function VideoGallery() {
                                 <div className="absolute inset-0 w-full h-full bg-black">
                                     {video.videoSrc ? (
                                         <video 
-                                            src={`${video.videoSrc}#t=0.5`} 
+                                            src={`${video.videoSrc}#t=0.1`} 
                                             poster={video.thumbnailUrl || undefined}
                                             className="w-full h-full object-cover"
-                                            muted playsInline preload="none"
+                                            muted playsInline preload="metadata"
                                         />
                                     ) : video.thumbnailUrl ? (
                                         <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover" />
